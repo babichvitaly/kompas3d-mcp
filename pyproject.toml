@@ -7,6 +7,8 @@ name = "kompas3d-mcp"
 version = "0.1.0"
 description = "Local KOMPAS-3D MCP server and blueprint modeling workflows"
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Operating System :: Microsoft :: Windows",

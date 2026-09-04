@@ -178,6 +178,5 @@ This does not establish arbitrary blueprint reconstruction or every release/lice
 
 ## License
 
-A project license has not been selected yet. Public source availability alone does
-not grant a license to reuse or redistribute it. KOMPAS-3D and its SDK are not
-included; their use is governed by ASCON's terms.
+This project is licensed under the [MIT License](LICENSE). KOMPAS-3D and its SDK
+are not included; their use is governed by ASCON's terms.
