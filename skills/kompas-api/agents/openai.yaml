@@ -1,0 +1,6 @@
+interface:
+  display_name: "KOMPAS SDK Automation"
+  short_description: "Discover and use native KOMPAS API5/API7 operations"
+  default_prompt: "Use $kompas-api to discover the installed SDK interface for this KOMPAS operation."
+policy:
+  allow_implicit_invocation: true

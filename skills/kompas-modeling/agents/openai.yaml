@@ -1,0 +1,6 @@
+interface:
+  display_name: "KOMPAS 3D Modeling"
+  short_description: "Build editable engineering parts in KOMPAS-3D"
+  default_prompt: "Use $kompas-modeling to create a dimensioned native KOMPAS-3D part from my description."
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,36 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "kompas3d-mcp"
+version = "0.1.0"
+description = "Local KOMPAS-3D MCP server and blueprint modeling workflows"
+readme = "README.md"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+]
+requires-python = ">=3.12"
+dependencies = ["mcp>=1.29.1,<2", "pydantic>=2.12,<3", "pywin32>=311; sys_platform == 'win32'", "pillow>=11", "pymupdf>=1.26"]
+
+[project.scripts]
+kompas3d-mcp = "kompas_mcp.server:main"
+
+[dependency-groups]
+dev = ["pytest>=8", "ruff>=0.12"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/kompas_mcp"]
+
+[tool.hatch.build.targets.sdist]
+include = ["/src", "/skills", "/scripts", "/tests", "/docs", "/README.md", "/README.en.md", "/CONTRIBUTING.md", "/install.ps1", "/pyproject.toml", "/uv.lock", "/LICENSE"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100

@@ -1,0 +1,6 @@
+interface:
+  display_name: "KOMPAS Blueprint Reconstruction"
+  short_description: "Reconstruct KOMPAS models from engineering drawings"
+  default_prompt: "Use $kompas-blueprints to reconstruct this drawing as an editable KOMPAS-3D model."
+policy:
+  allow_implicit_invocation: true
