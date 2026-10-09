@@ -13,3 +13,15 @@ build/
 *.log
 .coverage
 htmlcov/
+local/
+# Пользовательские CAD-документы храним вне публичного репозитория.
+*.m3d
+*.a3d
+*.cdw
+*.frw
+*.spw
+*.step
+*.stp
+*.stl
+*.iges
+*.igs
