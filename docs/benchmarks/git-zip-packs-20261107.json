@@ -1,0 +1,792 @@
+[
+  {
+    "schema": "synthetic-zip-pack-benchmark/1",
+    "scenario": "renamed",
+    "git_version": "git version 2.54.0 (Apple Git-157)",
+    "entries": 24,
+    "chunk_bytes": 262144,
+    "pack_command": [
+      "pack-objects",
+      "--revs",
+      "--stdout",
+      "--thin",
+      "--delta-base-offset"
+    ],
+    "new_zip_bytes": 6296998,
+    "source_unchanged": true,
+    "network_used": false,
+    "rows": [
+      {
+        "variant": "baseline",
+        "ordinary_thin_bytes": 6297663,
+        "prepare_seconds": 0.0,
+        "thin_seconds": 0.0898,
+        "new_blob_delta_base": null,
+        "cache_bytes": 0,
+        "no_bitmap_thin_bytes": null,
+        "receiver_verified": true
+      },
+      {
+        "variant": "pair",
+        "ordinary_thin_bytes": 6297663,
+        "prepare_seconds": 0.1259,
+        "thin_seconds": 0.0197,
+        "new_blob_delta_base": null,
+        "cache_bytes": 6563819,
+        "no_bitmap_thin_bytes": null,
+        "receiver_verified": true
+      },
+      {
+        "variant": "full-no-bitmap",
+        "ordinary_thin_bytes": 6297663,
+        "prepare_seconds": 0.1254,
+        "thin_seconds": 0.0197,
+        "new_blob_delta_base": null,
+        "cache_bytes": 6564343,
+        "no_bitmap_thin_bytes": null,
+        "receiver_verified": true
+      },
+      {
+        "variant": "full-bitmap",
+        "ordinary_thin_bytes": 6297663,
+        "prepare_seconds": 0.1224,
+        "thin_seconds": 0.0169,
+        "new_blob_delta_base": null,
+        "cache_bytes": 6564591,
+        "no_bitmap_thin_bytes": 6297663,
+        "receiver_verified": true
+      },
+      {
+        "variant": "seeded-full-no-bitmap",
+        "ordinary_thin_bytes": 6297663,
+        "prepare_seconds": 0.1385,
+        "thin_seconds": 0.0187,
+        "new_blob_delta_base": null,
+        "cache_bytes": 13128162,
+        "no_bitmap_thin_bytes": null,
+        "receiver_verified": true
+      },
+      {
+        "variant": "seeded-full-bitmap",
+        "ordinary_thin_bytes": 6297663,
+        "prepare_seconds": 0.1486,
+        "thin_seconds": 0.0173,
+        "new_blob_delta_base": null,
+        "cache_bytes": 13128410,
+        "no_bitmap_thin_bytes": 6297663,
+        "receiver_verified": true
+      }
+    ]
+  },
+  {
+    "schema": "synthetic-zip-pack-benchmark/1",
+    "scenario": "stable-path",
+    "git_version": "git version 2.54.0 (Apple Git-157)",
+    "entries": 24,
+    "chunk_bytes": 262144,
+    "pack_command": [
+      "pack-objects",
+      "--revs",
+      "--stdout",
+      "--thin",
+      "--delta-base-offset"
+    ],
+    "new_zip_bytes": 6296998,
+    "source_unchanged": true,
+    "network_used": false,
+    "rows": [
+      {
+        "variant": "baseline",
+        "ordinary_thin_bytes": 265494,
+        "prepare_seconds": 0.0,
+        "thin_seconds": 0.0369,
+        "new_blob_delta_base": null,
+        "cache_bytes": 0,
+        "no_bitmap_thin_bytes": null,
+        "receiver_verified": true
+      },
+      {
+        "variant": "pair",
+        "ordinary_thin_bytes": 265494,
+        "prepare_seconds": 0.117,
+        "thin_seconds": 0.0372,
+        "new_blob_delta_base": null,
+        "cache_bytes": 6563819,
+        "no_bitmap_thin_bytes": null,
+        "receiver_verified": true
+      },
+      {
+        "variant": "full-no-bitmap",
+        "ordinary_thin_bytes": 265494,
+        "prepare_seconds": 0.1188,
+        "thin_seconds": 0.0387,
+        "new_blob_delta_base": null,
+        "cache_bytes": 6564305,
+        "no_bitmap_thin_bytes": null,
+        "receiver_verified": true
+      },
+      {
+        "variant": "full-bitmap",
+        "ordinary_thin_bytes": 6297625,
+        "prepare_seconds": 0.1183,
+        "thin_seconds": 0.0173,
+        "new_blob_delta_base": null,
+        "cache_bytes": 6564553,
+        "no_bitmap_thin_bytes": 265494,
+        "receiver_verified": true
+      },
+      {
+        "variant": "seeded-full-no-bitmap",
+        "ordinary_thin_bytes": 265494,
+        "prepare_seconds": 0.144,
+        "thin_seconds": 0.0346,
+        "new_blob_delta_base": null,
+        "cache_bytes": 13128124,
+        "no_bitmap_thin_bytes": null,
+        "receiver_verified": true
+      },
+      {
+        "variant": "seeded-full-bitmap",
+        "ordinary_thin_bytes": 6297625,
+        "prepare_seconds": 0.137,
+        "thin_seconds": 0.0174,
+        "new_blob_delta_base": null,
+        "cache_bytes": 13128372,
+        "no_bitmap_thin_bytes": 265494,
+        "receiver_verified": true
+      }
+    ]
+  },
+  {
+    "schema": "synthetic-zip-pack-benchmark/1",
+    "scenario": "unrelated",
+    "git_version": "git version 2.54.0 (Apple Git-157)",
+    "entries": 24,
+    "chunk_bytes": 262144,
+    "pack_command": [
+      "pack-objects",
+      "--revs",
+      "--stdout",
+      "--thin",
+      "--delta-base-offset"
+    ],
+    "new_zip_bytes": 6296998,
+    "source_unchanged": true,
+    "network_used": false,
+    "rows": [
+      {
+        "variant": "baseline",
+        "ordinary_thin_bytes": 6297654,
+        "prepare_seconds": 0.0,
+        "thin_seconds": 0.0891,
+        "new_blob_delta_base": null,
+        "cache_bytes": 0,
+        "no_bitmap_thin_bytes": null,
+        "receiver_verified": true
+      },
+      {
+        "variant": "pair",
+        "ordinary_thin_bytes": 6297654,
+        "prepare_seconds": 0.215,
+        "thin_seconds": 0.0194,
+        "new_blob_delta_base": null,
+        "cache_bytes": 12595701,
+        "no_bitmap_thin_bytes": null,
+        "receiver_verified": true
+      },
+      {
+        "variant": "full-no-bitmap",
+        "ordinary_thin_bytes": 6297654,
+        "prepare_seconds": 0.2187,
+        "thin_seconds": 0.018,
+        "new_blob_delta_base": null,
+        "cache_bytes": 12596225,
+        "no_bitmap_thin_bytes": null,
+        "receiver_verified": true
+      },
+      {
+        "variant": "full-bitmap",
+        "ordinary_thin_bytes": 6297654,
+        "prepare_seconds": 0.2173,
+        "thin_seconds": 0.0186,
+        "new_blob_delta_base": null,
+        "cache_bytes": 12596473,
+        "no_bitmap_thin_bytes": 6297654,
+        "receiver_verified": true
+      },
+      {
+        "variant": "seeded-full-no-bitmap",
+        "ordinary_thin_bytes": 6297654,
+        "prepare_seconds": 0.2615,
+        "thin_seconds": 0.0201,
+        "new_blob_delta_base": null,
+        "cache_bytes": 25191926,
+        "no_bitmap_thin_bytes": null,
+        "receiver_verified": true
+      },
+      {
+        "variant": "seeded-full-bitmap",
+        "ordinary_thin_bytes": 6297654,
+        "prepare_seconds": 0.2586,
+        "thin_seconds": 0.0238,
+        "new_blob_delta_base": null,
+        "cache_bytes": 25192174,
+        "no_bitmap_thin_bytes": 6297654,
+        "receiver_verified": true
+      }
+    ]
+  },
+  {
+    "schema": "synthetic-zip-pack-benchmark/1",
+    "scenario": "same-tail-shrinking",
+    "git_version": "git version 2.54.0 (Apple Git-157)",
+    "entries": 24,
+    "chunk_bytes": 262144,
+    "pack_command": [
+      "pack-objects",
+      "--revs",
+      "--stdout",
+      "--thin",
+      "--delta-base-offset"
+    ],
+    "new_zip_bytes": 6296998,
+    "source_unchanged": true,
+    "network_used": false,
+    "rows": [
+      {
+        "variant": "baseline",
+        "ordinary_thin_bytes": 6297672,
+        "prepare_seconds": 0.0,
+        "thin_seconds": 0.1029,
+        "new_blob_delta_base": null,
+        "cache_bytes": 0,
+        "no_bitmap_thin_bytes": null,
+        "receiver_verified": true
+      },
+      {
+        "variant": "pair",
+        "ordinary_thin_bytes": 6297672,
+        "prepare_seconds": 0.1853,
+        "thin_seconds": 0.0998,
+        "new_blob_delta_base": "3c9d0295ce74e3091bcf3142af43c4e1f451f987",
+        "cache_bytes": 6825976,
+        "no_bitmap_thin_bytes": null,
+        "receiver_verified": true
+      },
+      {
+        "variant": "full-no-bitmap",
+        "ordinary_thin_bytes": 6297672,
+        "prepare_seconds": 0.1275,
+        "thin_seconds": 0.0917,
+        "new_blob_delta_base": "3c9d0295ce74e3091bcf3142af43c4e1f451f987",
+        "cache_bytes": 6826492,
+        "no_bitmap_thin_bytes": null,
+        "receiver_verified": true
+      },
+      {
+        "variant": "full-bitmap",
+        "ordinary_thin_bytes": 265564,
+        "prepare_seconds": 0.1224,
+        "thin_seconds": 0.0105,
+        "new_blob_delta_base": "3c9d0295ce74e3091bcf3142af43c4e1f451f987",
+        "cache_bytes": 6826740,
+        "no_bitmap_thin_bytes": 6297672,
+        "receiver_verified": true
+      },
+      {
+        "variant": "seeded-full-no-bitmap",
+        "ordinary_thin_bytes": 6297672,
+        "prepare_seconds": 0.1488,
+        "thin_seconds": 0.0966,
+        "new_blob_delta_base": "3c9d0295ce74e3091bcf3142af43c4e1f451f987",
+        "cache_bytes": 13652468,
+        "no_bitmap_thin_bytes": null,
+        "receiver_verified": true
+      },
+      {
+        "variant": "seeded-full-bitmap",
+        "ordinary_thin_bytes": 265564,
+        "prepare_seconds": 0.1435,
+        "thin_seconds": 0.0083,
+        "new_blob_delta_base": "3c9d0295ce74e3091bcf3142af43c4e1f451f987",
+        "cache_bytes": 13652716,
+        "no_bitmap_thin_bytes": 6297672,
+        "receiver_verified": true
+      }
+    ]
+  },
+  {
+    "schema": "synthetic-zip-pack-benchmark/1",
+    "scenario": "renamed",
+    "git_version": "git version 2.56.0",
+    "entries": 24,
+    "chunk_bytes": 262144,
+    "pack_command": [
+      "pack-objects",
+      "--revs",
+      "--stdout",
+      "--thin",
+      "--delta-base-offset"
+    ],
+    "new_zip_bytes": 6296998,
+    "source_unchanged": true,
+    "network_used": false,
+    "rows": [
+      {
+        "variant": "baseline",
+        "ordinary_thin_bytes": 6297663,
+        "prepare_seconds": 0.0,
+        "thin_seconds": 0.094,
+        "new_blob_delta_base": null,
+        "cache_bytes": 0,
+        "no_bitmap_thin_bytes": null,
+        "receiver_verified": true
+      },
+      {
+        "variant": "pair",
+        "ordinary_thin_bytes": 6297663,
+        "prepare_seconds": 0.1263,
+        "thin_seconds": 0.0161,
+        "new_blob_delta_base": null,
+        "cache_bytes": 6563819,
+        "no_bitmap_thin_bytes": null,
+        "receiver_verified": true
+      },
+      {
+        "variant": "full-no-bitmap",
+        "ordinary_thin_bytes": 6297663,
+        "prepare_seconds": 0.1163,
+        "thin_seconds": 0.0157,
+        "new_blob_delta_base": null,
+        "cache_bytes": 6564343,
+        "no_bitmap_thin_bytes": null,
+        "receiver_verified": true
+      },
+      {
+        "variant": "full-bitmap",
+        "ordinary_thin_bytes": 6297663,
+        "prepare_seconds": 0.1203,
+        "thin_seconds": 0.0148,
+        "new_blob_delta_base": null,
+        "cache_bytes": 6564591,
+        "no_bitmap_thin_bytes": 6297663,
+        "receiver_verified": true
+      },
+      {
+        "variant": "seeded-full-no-bitmap",
+        "ordinary_thin_bytes": 6297663,
+        "prepare_seconds": 0.1308,
+        "thin_seconds": 0.0168,
+        "new_blob_delta_base": null,
+        "cache_bytes": 13128162,
+        "no_bitmap_thin_bytes": null,
+        "receiver_verified": true
+      },
+      {
+        "variant": "seeded-full-bitmap",
+        "ordinary_thin_bytes": 6297663,
+        "prepare_seconds": 0.1462,
+        "thin_seconds": 0.016,
+        "new_blob_delta_base": null,
+        "cache_bytes": 13128410,
+        "no_bitmap_thin_bytes": 6297663,
+        "receiver_verified": true
+      }
+    ]
+  },
+  {
+    "schema": "synthetic-zip-pack-benchmark/1",
+    "scenario": "stable-path",
+    "git_version": "git version 2.56.0",
+    "entries": 24,
+    "chunk_bytes": 262144,
+    "pack_command": [
+      "pack-objects",
+      "--revs",
+      "--stdout",
+      "--thin",
+      "--delta-base-offset"
+    ],
+    "new_zip_bytes": 6296998,
+    "source_unchanged": true,
+    "network_used": false,
+    "rows": [
+      {
+        "variant": "baseline",
+        "ordinary_thin_bytes": 265494,
+        "prepare_seconds": 0.0,
+        "thin_seconds": 0.035,
+        "new_blob_delta_base": null,
+        "cache_bytes": 0,
+        "no_bitmap_thin_bytes": null,
+        "receiver_verified": true
+      },
+      {
+        "variant": "pair",
+        "ordinary_thin_bytes": 265494,
+        "prepare_seconds": 0.1223,
+        "thin_seconds": 0.0367,
+        "new_blob_delta_base": null,
+        "cache_bytes": 6563819,
+        "no_bitmap_thin_bytes": null,
+        "receiver_verified": true
+      },
+      {
+        "variant": "full-no-bitmap",
+        "ordinary_thin_bytes": 265494,
+        "prepare_seconds": 0.1216,
+        "thin_seconds": 0.034,
+        "new_blob_delta_base": null,
+        "cache_bytes": 6564305,
+        "no_bitmap_thin_bytes": null,
+        "receiver_verified": true
+      },
+      {
+        "variant": "full-bitmap",
+        "ordinary_thin_bytes": 6297625,
+        "prepare_seconds": 0.1218,
+        "thin_seconds": 0.0148,
+        "new_blob_delta_base": null,
+        "cache_bytes": 6564553,
+        "no_bitmap_thin_bytes": 265494,
+        "receiver_verified": true
+      },
+      {
+        "variant": "seeded-full-no-bitmap",
+        "ordinary_thin_bytes": 265494,
+        "prepare_seconds": 0.1381,
+        "thin_seconds": 0.0313,
+        "new_blob_delta_base": null,
+        "cache_bytes": 13128124,
+        "no_bitmap_thin_bytes": null,
+        "receiver_verified": true
+      },
+      {
+        "variant": "seeded-full-bitmap",
+        "ordinary_thin_bytes": 6297625,
+        "prepare_seconds": 0.1338,
+        "thin_seconds": 0.0145,
+        "new_blob_delta_base": null,
+        "cache_bytes": 13128372,
+        "no_bitmap_thin_bytes": 265494,
+        "receiver_verified": true
+      }
+    ]
+  },
+  {
+    "schema": "synthetic-zip-pack-benchmark/1",
+    "scenario": "unrelated",
+    "git_version": "git version 2.56.0",
+    "entries": 24,
+    "chunk_bytes": 262144,
+    "pack_command": [
+      "pack-objects",
+      "--revs",
+      "--stdout",
+      "--thin",
+      "--delta-base-offset"
+    ],
+    "new_zip_bytes": 6296998,
+    "source_unchanged": true,
+    "network_used": false,
+    "rows": [
+      {
+        "variant": "baseline",
+        "ordinary_thin_bytes": 6297654,
+        "prepare_seconds": 0.0,
+        "thin_seconds": 0.0901,
+        "new_blob_delta_base": null,
+        "cache_bytes": 0,
+        "no_bitmap_thin_bytes": null,
+        "receiver_verified": true
+      },
+      {
+        "variant": "pair",
+        "ordinary_thin_bytes": 6297654,
+        "prepare_seconds": 0.215,
+        "thin_seconds": 0.0171,
+        "new_blob_delta_base": null,
+        "cache_bytes": 12595701,
+        "no_bitmap_thin_bytes": null,
+        "receiver_verified": true
+      },
+      {
+        "variant": "full-no-bitmap",
+        "ordinary_thin_bytes": 6297654,
+        "prepare_seconds": 0.263,
+        "thin_seconds": 0.0154,
+        "new_blob_delta_base": null,
+        "cache_bytes": 12596225,
+        "no_bitmap_thin_bytes": null,
+        "receiver_verified": true
+      },
+      {
+        "variant": "full-bitmap",
+        "ordinary_thin_bytes": 6297654,
+        "prepare_seconds": 0.2145,
+        "thin_seconds": 0.015,
+        "new_blob_delta_base": null,
+        "cache_bytes": 12596473,
+        "no_bitmap_thin_bytes": 6297654,
+        "receiver_verified": true
+      },
+      {
+        "variant": "seeded-full-no-bitmap",
+        "ordinary_thin_bytes": 6297654,
+        "prepare_seconds": 0.2385,
+        "thin_seconds": 0.0153,
+        "new_blob_delta_base": null,
+        "cache_bytes": 25191926,
+        "no_bitmap_thin_bytes": null,
+        "receiver_verified": true
+      },
+      {
+        "variant": "seeded-full-bitmap",
+        "ordinary_thin_bytes": 6297654,
+        "prepare_seconds": 0.238,
+        "thin_seconds": 0.0148,
+        "new_blob_delta_base": null,
+        "cache_bytes": 25192174,
+        "no_bitmap_thin_bytes": 6297654,
+        "receiver_verified": true
+      }
+    ]
+  },
+  {
+    "schema": "synthetic-zip-pack-benchmark/1",
+    "scenario": "same-tail-shrinking",
+    "git_version": "git version 2.56.0",
+    "entries": 24,
+    "chunk_bytes": 262144,
+    "pack_command": [
+      "pack-objects",
+      "--revs",
+      "--stdout",
+      "--thin",
+      "--delta-base-offset"
+    ],
+    "new_zip_bytes": 6296998,
+    "source_unchanged": true,
+    "network_used": false,
+    "rows": [
+      {
+        "variant": "baseline",
+        "ordinary_thin_bytes": 6297672,
+        "prepare_seconds": 0.0,
+        "thin_seconds": 0.0905,
+        "new_blob_delta_base": null,
+        "cache_bytes": 0,
+        "no_bitmap_thin_bytes": null,
+        "receiver_verified": true
+      },
+      {
+        "variant": "pair",
+        "ordinary_thin_bytes": 6297672,
+        "prepare_seconds": 0.1231,
+        "thin_seconds": 0.0888,
+        "new_blob_delta_base": "3c9d0295ce74e3091bcf3142af43c4e1f451f987",
+        "cache_bytes": 6825976,
+        "no_bitmap_thin_bytes": null,
+        "receiver_verified": true
+      },
+      {
+        "variant": "full-no-bitmap",
+        "ordinary_thin_bytes": 6297672,
+        "prepare_seconds": 0.1204,
+        "thin_seconds": 0.0896,
+        "new_blob_delta_base": "3c9d0295ce74e3091bcf3142af43c4e1f451f987",
+        "cache_bytes": 6826492,
+        "no_bitmap_thin_bytes": null,
+        "receiver_verified": true
+      },
+      {
+        "variant": "full-bitmap",
+        "ordinary_thin_bytes": 265564,
+        "prepare_seconds": 0.1225,
+        "thin_seconds": 0.0053,
+        "new_blob_delta_base": "3c9d0295ce74e3091bcf3142af43c4e1f451f987",
+        "cache_bytes": 6826740,
+        "no_bitmap_thin_bytes": 6297672,
+        "receiver_verified": true
+      },
+      {
+        "variant": "seeded-full-no-bitmap",
+        "ordinary_thin_bytes": 6297672,
+        "prepare_seconds": 0.137,
+        "thin_seconds": 0.0886,
+        "new_blob_delta_base": "3c9d0295ce74e3091bcf3142af43c4e1f451f987",
+        "cache_bytes": 13652468,
+        "no_bitmap_thin_bytes": null,
+        "receiver_verified": true
+      },
+      {
+        "variant": "seeded-full-bitmap",
+        "ordinary_thin_bytes": 265564,
+        "prepare_seconds": 0.1401,
+        "thin_seconds": 0.0056,
+        "new_blob_delta_base": "3c9d0295ce74e3091bcf3142af43c4e1f451f987",
+        "cache_bytes": 13652716,
+        "no_bitmap_thin_bytes": 6297672,
+        "receiver_verified": true
+      }
+    ]
+  },
+  {
+    "schema": "synthetic-zip-pack-benchmark/1",
+    "scenario": "shrinking",
+    "git_version": "git version 2.54.0 (Apple Git-157)",
+    "entries": 24,
+    "chunk_bytes": 262144,
+    "pack_command": [
+      "pack-objects",
+      "--revs",
+      "--stdout",
+      "--thin",
+      "--delta-base-offset"
+    ],
+    "new_zip_bytes": 6296998,
+    "source_unchanged": true,
+    "network_used": false,
+    "rows": [
+      {
+        "variant": "baseline",
+        "ordinary_thin_bytes": 6297661,
+        "prepare_seconds": 0.0,
+        "thin_seconds": 0.0912,
+        "new_blob_delta_base": null,
+        "cache_bytes": 0,
+        "no_bitmap_thin_bytes": null,
+        "receiver_verified": true
+      },
+      {
+        "variant": "pair",
+        "ordinary_thin_bytes": 6297661,
+        "prepare_seconds": 0.1221,
+        "thin_seconds": 0.0915,
+        "new_blob_delta_base": "3c9d0295ce74e3091bcf3142af43c4e1f451f987",
+        "cache_bytes": 6825976,
+        "no_bitmap_thin_bytes": null,
+        "receiver_verified": true
+      },
+      {
+        "variant": "full-no-bitmap",
+        "ordinary_thin_bytes": 6297661,
+        "prepare_seconds": 0.1304,
+        "thin_seconds": 0.0186,
+        "new_blob_delta_base": null,
+        "cache_bytes": 6828800,
+        "no_bitmap_thin_bytes": null,
+        "receiver_verified": true
+      },
+      {
+        "variant": "full-bitmap",
+        "ordinary_thin_bytes": 6297661,
+        "prepare_seconds": 0.1317,
+        "thin_seconds": 0.0169,
+        "new_blob_delta_base": null,
+        "cache_bytes": 6829048,
+        "no_bitmap_thin_bytes": 6297661,
+        "receiver_verified": true
+      },
+      {
+        "variant": "seeded-full-no-bitmap",
+        "ordinary_thin_bytes": 6297661,
+        "prepare_seconds": 0.1496,
+        "thin_seconds": 0.0912,
+        "new_blob_delta_base": "3c9d0295ce74e3091bcf3142af43c4e1f451f987",
+        "cache_bytes": 13652477,
+        "no_bitmap_thin_bytes": null,
+        "receiver_verified": true
+      },
+      {
+        "variant": "seeded-full-bitmap",
+        "ordinary_thin_bytes": 265553,
+        "prepare_seconds": 0.1434,
+        "thin_seconds": 0.0079,
+        "new_blob_delta_base": "3c9d0295ce74e3091bcf3142af43c4e1f451f987",
+        "cache_bytes": 13652725,
+        "no_bitmap_thin_bytes": 6297661,
+        "receiver_verified": true
+      }
+    ]
+  },
+  {
+    "schema": "synthetic-zip-pack-benchmark/1",
+    "scenario": "shrinking",
+    "git_version": "git version 2.56.0",
+    "entries": 24,
+    "chunk_bytes": 262144,
+    "pack_command": [
+      "pack-objects",
+      "--revs",
+      "--stdout",
+      "--thin",
+      "--delta-base-offset"
+    ],
+    "new_zip_bytes": 6296998,
+    "source_unchanged": true,
+    "network_used": false,
+    "rows": [
+      {
+        "variant": "baseline",
+        "ordinary_thin_bytes": 6297661,
+        "prepare_seconds": 0.0,
+        "thin_seconds": 0.087,
+        "new_blob_delta_base": null,
+        "cache_bytes": 0,
+        "no_bitmap_thin_bytes": null,
+        "receiver_verified": true
+      },
+      {
+        "variant": "pair",
+        "ordinary_thin_bytes": 6297661,
+        "prepare_seconds": 0.1288,
+        "thin_seconds": 0.09,
+        "new_blob_delta_base": "3c9d0295ce74e3091bcf3142af43c4e1f451f987",
+        "cache_bytes": 6825976,
+        "no_bitmap_thin_bytes": null,
+        "receiver_verified": true
+      },
+      {
+        "variant": "full-no-bitmap",
+        "ordinary_thin_bytes": 6297661,
+        "prepare_seconds": 0.1275,
+        "thin_seconds": 0.0156,
+        "new_blob_delta_base": null,
+        "cache_bytes": 6828800,
+        "no_bitmap_thin_bytes": null,
+        "receiver_verified": true
+      },
+      {
+        "variant": "full-bitmap",
+        "ordinary_thin_bytes": 6297661,
+        "prepare_seconds": 0.1252,
+        "thin_seconds": 0.0149,
+        "new_blob_delta_base": null,
+        "cache_bytes": 6829048,
+        "no_bitmap_thin_bytes": 6297661,
+        "receiver_verified": true
+      },
+      {
+        "variant": "seeded-full-no-bitmap",
+        "ordinary_thin_bytes": 6297661,
+        "prepare_seconds": 0.1409,
+        "thin_seconds": 0.0879,
+        "new_blob_delta_base": "3c9d0295ce74e3091bcf3142af43c4e1f451f987",
+        "cache_bytes": 13652477,
+        "no_bitmap_thin_bytes": null,
+        "receiver_verified": true
+      },
+      {
+        "variant": "seeded-full-bitmap",
+        "ordinary_thin_bytes": 265553,
+        "prepare_seconds": 0.144,
+        "thin_seconds": 0.0053,
+        "new_blob_delta_base": "3c9d0295ce74e3091bcf3142af43c4e1f451f987",
+        "cache_bytes": 13652725,
+        "no_bitmap_thin_bytes": 6297661,
+        "receiver_verified": true
+      }
+    ]
+  }
+]

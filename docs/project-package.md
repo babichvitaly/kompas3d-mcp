@@ -76,3 +76,7 @@ placements, geometry and native history, save and reopen, and then repeat from a
 second location. Only that separate evidence can establish a relocatable project.
 Successful staging alone does not establish usability, dynamic drawing updates,
 geometric correctness, manufacturing approval or a speed improvement.
+
+Optional publication research is kept outside staging:
+[synthetic Git/ZIP pack benchmark and helper decision](git-zip-pack-benchmark.md).
+It does not run as part of package materialization and does not publish anything.
