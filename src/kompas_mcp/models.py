@@ -52,7 +52,10 @@ Curve = Annotated[Circle | Polyline | Arc, Field(discriminator="kind")]
 class SketchSpec(Model):
     name: str = "Sketch"
     plane: Literal["XY", "XZ", "YZ"] = "XY"
-    offset: Number = 0
+    offset: Number = 0  # Signed distance along the native support normal.
+    expected_world_points: Annotated[
+        list[tuple[Number, Number, Number]], Field(min_length=3, max_length=3)
+    ] | None = None
     support_entity_id: str | None = None
     curves: Annotated[list[Curve], Field(min_length=1, max_length=2000)]
 

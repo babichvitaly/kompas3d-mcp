@@ -21,13 +21,9 @@ def frame_snapshot(k, entity):
     location = definition.GetLocation()
     if not isinstance(location, (list, tuple)) or len(location) != 3 or not location[0]:
         raise RuntimeError("Native GetLocation did not return checked plane coordinates")
-    native = _cast(k, k.app.TransferInterface(entity, k.constants["ksAPI7Dual"], 0), "ISketch")
-    points = []
-    for x, y in ((0., 0.), (1., 0.), (0., 1.)):
-        point = native.GetPoint3D(x, y)
-        if not isinstance(point, (list, tuple)) or len(point) != 4 or not point[0]:
-            raise RuntimeError("Native GetPoint3D did not return a checked point")
-        points.append(finite_vector(point[1:], 3))
+    from .plane_geometry import sketch_preflight
+
+    points = sketch_preflight(k, entity)["points"]
     angle = float(definition.angle)
     finite_vector([angle], 1)
     return {"translation": finite_vector(location[1:], 2), "angle": angle, "points": points}

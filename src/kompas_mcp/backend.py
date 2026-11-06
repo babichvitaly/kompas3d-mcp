@@ -239,6 +239,9 @@ class Kompas:
         definition = entity.GetDefinition()
         require(definition.SetPlane(plane), "set sketch plane")
         require(entity.Create(), "create sketch")
+        from .plane_geometry import sketch_preflight
+
+        frame = sketch_preflight(self, entity, spec.expected_world_points)
         drawing = require(definition.BeginEdit(), "begin sketch edit")
         try:
             for curve in spec.curves:
@@ -266,7 +269,8 @@ class Kompas:
                         )
         finally:
             require(definition.EndEdit(), "end sketch edit")
-        return {"sketch_id": self.remember(document_id, entity), "name": spec.name}
+        return {"sketch_id": self.remember(document_id, entity), "name": spec.name,
+                "preflight_frame": frame}
 
     def feature(self, document_id: str, spec: ExtrusionSpec | RevolutionSpec):
         self.invalidate_topology()

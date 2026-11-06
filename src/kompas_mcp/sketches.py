@@ -216,7 +216,11 @@ def constrain_sketch(k, handle, copy_root, name, expected_geometry, prefix="Layo
         raise ValueError("Only standalone part sketches are supported")
     info = _info(k, doc)
     entity = selected_sketches(k, info["document_id"], [name])[0]
-    result = {"document": doc.PathName, "name": name, "dry_run": dry_run}
+    from .variable_names import ensure_unused, native_names, reserve_prefix
+
+    prefix = reserve_prefix(prefix, native_names(k, info["document_id"]))
+    result = {"document": doc.PathName, "name": name, "dry_run": dry_run,
+              "variable_prefix": prefix}
     with editing(k, entity) as view:
         container = _cast(k, view, "IDrawingContainer")
         unsupported = {family: getattr(container, family).Count for family in (
@@ -255,6 +259,7 @@ def constrain_sketch(k, handle, copy_root, name, expected_geometry, prefix="Layo
         variables = []
 
         def driving(dim, variable, value):
+            ensure_unused(k, info["document_id"], variable)
             try:
                 new_constraint(k, dim, "ksCFixedDim")
             except Exception as exc:
