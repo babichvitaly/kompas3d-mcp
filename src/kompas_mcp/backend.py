@@ -1,10 +1,30 @@
 """Small API5 adapter. Dynamic COM dispatch is confined to this module."""
 
 import os
+import re
 from pathlib import Path
 from uuid import uuid4
 
 from .models import Arc, Circle, ExtrusionSpec, RevolutionSpec, SketchSpec
+
+
+def com_identity(obj):
+    """Canonical IUnknown address, retaining the COM object in its owning registry.
+
+    Pywin32 311 PyIUnknown supports equality but is unhashable. Its native repr
+    exposes the underlying pointer separately from the Python wrapper address.
+    Fail closed on an unknown representation rather than deduplicating aliases.
+    """
+    ole = obj._oleobj_
+    if not hasattr(ole, "QueryInterface"):
+        return ole  # lightweight test doubles
+    import pythoncom
+
+    unknown = ole.QueryInterface(pythoncom.IID_IUnknown)
+    match = re.fullmatch(r"<PyIUnknown at 0x[\da-fA-F]+ with obj at (0x[\da-fA-F]+)>", repr(unknown))
+    if match is None:
+        raise RuntimeError("Unsupported pywin32 IUnknown identity representation")
+    return match[1].lower()
 
 
 def require(value, action):
@@ -34,6 +54,32 @@ class Kompas:
         self.documents = {}
         self.entities = {}
         self.handles = {}
+        self.handle_scopes = {}
+        self.handle_keys = {}
+        self.topology_snapshots = {}
+        self.model_features = {}
+        self.document_scopes = {}
+        self.owned_documents = set()
+
+    def get_handle(self, token):
+        if token not in self.handles:
+            raise ValueError("stale_handle: unknown, released or closed document handle")
+        return self.handles[token]
+
+    def invalidate_topology(self):
+        # Also used before unrestricted API calls, whose effects cannot be inferred.
+        self.topology_snapshots.clear()
+
+    def release_scope(self, scope):
+        # Unscoped advanced handles may alias a document through arbitrary SDK routes.
+        # Conservatively release those too; explicitly scoped other documents survive.
+        tokens = [t for t in self.handles if self.handle_scopes.get(t) in {None, scope}]
+        for token in tokens:
+            self.handles.pop(token, None)
+            self.handle_scopes.pop(token, None)
+        self.handle_keys = {key: t for key, t in self.handle_keys.items() if t in self.handles}
+        self.invalidate_topology()
+        return len(tokens)
 
     def connect(self, visible=True):
         import pythoncom
@@ -80,13 +126,38 @@ class Kompas:
             "application7": self.pack(self.app.ksGetApplication7()),
         }
 
+    def register_document(self, doc, owned=False):
+        """One scope/ID across API5 and API7; adoption never creates ownership."""
+        scope = str(doc.reference)
+        token = next((key for key, value in self.document_scopes.items() if value == scope), None)
+        if token is None:
+            token = next((key for key, value in self.documents.items()
+                          if key not in self.document_scopes
+                          and com_identity(value) == com_identity(doc)), None)
+        if token is None:
+            token = uuid4().hex
+        self.documents[token] = doc
+        self.document_scopes[token] = scope
+        if owned:
+            self.owned_documents.add(scope)
+        return token
+
+    def forget_document_scope(self, scope):
+        ids = {key for key, value in self.document_scopes.items() if value == scope}
+        for document_id in ids:
+            self.documents.pop(document_id, None)
+            self.model_features.pop(document_id, None)
+            self.document_scopes.pop(document_id, None)
+        self.entities = {key: value for key, value in self.entities.items() if value[0] not in ids}
+        self.owned_documents.discard(scope)
+        return self.release_scope(scope)
+
     def attach_active(self):
         self.connect()
         doc = self.app.ActiveDocument3D()
         if doc is None:
             raise ValueError("No active 3D document")
-        token = uuid4().hex
-        self.documents[token] = doc
+        token = self.register_document(doc)
         return {"document_id": token, "path": doc.fileName, "name": doc.GetPart(-1).name}
 
     def measure(self, document_id):
@@ -111,8 +182,7 @@ class Kompas:
         doc = self.api.ksDocument3D(self.app.Document3D())
         require(doc.Create(False, True), "create part")
         doc.GetPart(-1).name = name
-        token = uuid4().hex
-        self.documents[token] = doc
+        token = self.register_document(doc, owned=True)
         return {"document_id": token, "name": name}
 
     def open_document(self, path):
@@ -128,10 +198,11 @@ class Kompas:
         }:
             raise ValueError("Expected an existing native model or STEP/IGES/STL file")
         self.connect()
+        collection = self.app.ksGetApplication7().Documents
+        before = {str(collection.Item(i).Reference) for i in range(collection.Count)}
         doc = self.api.ksDocument3D(self.app.Document3D())
         require(doc.Open(str(source), False), "open document")
-        token = uuid4().hex
-        self.documents[token] = doc
+        token = self.register_document(doc, owned=str(doc.reference) not in before)
         return {"document_id": token, "path": str(source)}
 
     def entity(self, document_id, entity_id):
@@ -146,6 +217,7 @@ class Kompas:
         return token
 
     def sketch(self, document_id: str, spec: SketchSpec):
+        self.invalidate_topology()
         part = self.document(document_id).GetPart(-1)
         plane = part.GetDefaultEntity(
             self.constants[
@@ -197,6 +269,7 @@ class Kompas:
         return {"sketch_id": self.remember(document_id, entity), "name": spec.name}
 
     def feature(self, document_id: str, spec: ExtrusionSpec | RevolutionSpec):
+        self.invalidate_topology()
         sketch = self.entity(document_id, spec.sketch_id)
         part = self.document(document_id).GetPart(-1)
         before = self.measure(document_id)["volume_mm3"]
@@ -252,9 +325,13 @@ class Kompas:
 
     def save(self, document_id, path, overwrite=False):
         doc = self.document(document_id)
+        from .documents import save_evidence, verify_save
+
         target = output_path(path, {".m3d", ".a3d"}, overwrite)
+        before = save_evidence(target)
         require(doc.SaveAs(str(target)), "save native document")
-        return self.file_result(target)
+        evidence = verify_save(target, before, doc.fileName)
+        return {**self.file_result(target), **evidence}
 
     def export(self, document_id, path, overwrite=False):
         target = output_path(path, {".step", ".stp", ".stl", ".igs", ".iges"}, overwrite)
@@ -291,13 +368,18 @@ class Kompas:
             raise RuntimeError(f"KOMPAS returned success but output is missing or empty: {target}")
         return {"path": str(target), "bytes": target.stat().st_size}
 
-    def pack(self, value):
+    def pack(self, value, scope=None):
         if hasattr(value, "_oleobj_"):
+            key = (com_identity(value), type(value).__name__, scope)
+            if key in self.handle_keys:
+                return {"handle": self.handle_keys[key], "interface": type(value).__name__}
             token = uuid4().hex
             self.handles[token] = value
+            self.handle_scopes[token] = scope
+            self.handle_keys[key] = token
             return {"handle": token, "interface": type(value).__name__}
         if isinstance(value, (tuple, list)):
-            return [self.pack(v) for v in value]
+            return [self.pack(v, scope) for v in value]
         if value is None or isinstance(value, (str, int, float, bool)):
             return value
         return str(value)
@@ -305,7 +387,7 @@ class Kompas:
     def describe(self, handle):
         from .bridge import describe_type
 
-        return describe_type(type(self.handles[handle]))
+        return describe_type(type(self.get_handle(handle)))
 
     def api_call(self, handle, member, action, arguments, value):
         from .bridge import invoke, resolve
@@ -313,10 +395,11 @@ class Kompas:
         return self.pack(
             invoke(
                 self,
-                self.handles[handle],
+                self.get_handle(handle),
                 member,
                 action,
                 resolve(self, arguments),
                 resolve(self, value),
-            )
+            ),
+            self.handle_scopes.get(handle),
         )

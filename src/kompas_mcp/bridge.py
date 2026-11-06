@@ -1,6 +1,8 @@
 """Discoverable API5/API7 access, interface casting and sequential checked batches."""
 
 import inspect
+from copy import deepcopy
+from functools import lru_cache
 
 from .advanced_models import ApiBatch
 
@@ -8,7 +10,7 @@ from .advanced_models import ApiBatch
 def resolve(k, value, results=None, document_id=None):
     if isinstance(value, dict):
         if set(value) == {"handle"}:
-            return k.handles[value["handle"]]
+            return k.get_handle(value["handle"])
         if set(value) == {"constant"}:
             return k.constants[value["constant"]]
         if set(value) == {"entity_id"}:
@@ -20,7 +22,7 @@ def resolve(k, value, results=None, document_id=None):
                 raise ValueError(f"Unknown batch reference {value['ref']}")
             result = results[value["ref"]]
             if isinstance(result, dict) and "handle" in result and "interface" in result:
-                return k.handles[result["handle"]]
+                return k.get_handle(result["handle"])
             return resolve(k, result, results, document_id)
         if set(value) == {"variant"}:
             import pythoncom
@@ -50,6 +52,13 @@ def resolve(k, value, results=None, document_id=None):
 
 
 def describe_type(cls):
+    # Generated classes contain pure schema data. Never cache COM objects or
+    # return the mutable cached dictionary to an unrestricted caller.
+    return deepcopy(_describe_type(cls))
+
+
+@lru_cache(maxsize=1024)
+def _describe_type(cls):
     methods = {}
     for base in reversed(cls.__mro__):
         for name, member in vars(base).items():
@@ -120,11 +129,16 @@ def cast(k, handle, library, interface):
     import pythoncom
 
     cls = interface_type(k, library, interface)
-    obj = k.handles[handle]
-    return k.pack(cls(obj._oleobj_.QueryInterface(cls.CLSID, pythoncom.IID_IDispatch)))
+    obj = k.get_handle(handle)
+    return k.pack(
+        cls(obj._oleobj_.QueryInterface(cls.CLSID, pythoncom.IID_IDispatch)),
+        k.handle_scopes.get(handle),
+    )
 
 
 def invoke(k, obj, member, action, arguments, value):
+    if action in {"set", "call"}:
+        k.invalidate_topology()
     info = describe_type(type(obj))
     if action == "call" and member in info["methods"]:
         return getattr(obj, member)(*arguments)
@@ -156,7 +170,11 @@ def batch(k, plan: ApiBatch):
                 resolve(k, step.arguments, results),
                 resolve(k, step.value, results),
             )
-            results[step.id] = k.pack(result)
+            source = step.target.get("handle")
+            if source is None and "ref" in step.target:
+                previous = results.get(step.target["ref"])
+                source = previous.get("handle") if isinstance(previous, dict) else None
+            results[step.id] = k.pack(result, k.handle_scopes.get(source))
             check_result(result, step.expect)
         except Exception as exc:  # noqa: BLE001 - preserve partial CAD results for every COM failure
             return {

@@ -1,6 +1,55 @@
 # Capability coverage and evidence
 
+Revision 13 adds runtime diagnostics, document batching, dependency copying,
+native sketch frames, explicit collision fixtures, connected-body diagnostics,
+existing-view rebinding and PDF/DXF export. See [workflows-13.md](workflows-13.md)
+for scope, failure behavior and opt-in synthetic acceptance scripts. The current
+server registers 60 tools; historical counts below describe their dated runs.
+Tool count is not engineering or manufacturing coverage.
+
+The bounded audit/resource work is documented in [model-audit.md](model-audit.md).
+`validate_audit.py` live-verifies a known collision volume, separation, a rotated
+nested occurrence, temporary diagnostic cleanup, and 20 lifecycle cycles. It does
+not establish BRep tolerance accuracy or invariant nested collision selection.
+
 This inventory distinguishes automation reach from demonstrated reliability.
+
+`place_components` validates rigid row-vector matrices, stale expected poses,
+copy isolation, source paths, fixed flags and all unselected immediate placements.
+The local v25 route changes the owned API5 placement with `InitByMatrix3D`;
+`UpdatePlacement` returned false in the observed run. That raw return is preserved,
+not represented as native success. Exact matrix readback, independent native
+save/reopen, transformed solid bounds and scoped collision checks confirmed the
+tested copied assemblies. The tool itself does not save and returns
+`persistence_verified=false`. This is not arbitrary mate solving or proof of
+clearance through a moving latch/tool/cable sweep. Production evidence stays
+outside this public repository.
+
+### Copy-scoped sketch work, 2026-10-21
+
+`scripts/validate_sketches.py` live-verified a four-circle grid, a rounded profile,
+a bent profile, and horizontal/vertical semicircular slots on v25 Home. Every
+original line/circle/arc was compared after native save/reopen. A diameter edit
+10→12→10 mm produced the analytic 33π mm³ volume delta. A slot width edit
+12→14→12 mm produced 3(16+13π) mm³ and restored the original geometry.
+Cached feature flags and native sketch state were checked separately;
+full solver acceptance was true in the final run.
+Orthogonal semicircular caps use center alignment to a distinct incident primitive;
+an independent radius dimension at the minimum chord radius was rejected by the
+native solver and is not used.
+`inspect_sketches` reads exported native FRW snapshots, keeping the original
+sketch state unchanged. Entering/exiting source edit mode, including read-only
+BeginEditEx, had reset state 1→2 and is deliberately not the inspection route.
+
+`constrain_sketch` implements a coordinate-based plan for initially unconstrained
+lines/circles/arcs. It does not infer tangency or manufacturing design intent.
+Non-orthogonal profiles can require an explicit alternative: an irrational
+hexagon offset drifted by about 0.000004 mm and was correctly rejected by the
+0.000001 mm primitive comparison. This is not full arbitrary-sketch solver coverage.
+`rebind_component_sources` additionally implements copy-scoped immediate source
+replacement, preserving all immediate matrices. A local multi-file assembly
+acceptance compared 329 occurrence matrices; source files and private geometry
+remain outside this public repository. Mates and mechanism edits remain unverified.
 There is no defensible percentage for "almost all KOMPAS" without a defined
 workflow set and edition-specific acceptance tests. Tool count is not coverage:
 a general SDK tool can reach many operations, but reach alone does not validate

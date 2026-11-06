@@ -1,16 +1,16 @@
 """Document-scoped topology selection, native feature lifecycle and edge treatments."""
 
+from uuid import uuid4
+
 from .advanced_models import DefinitionCall, EdgeTreatment, FeatureSettings
-from .backend import require
+from .backend import com_identity, require
 from .bridge import check_result, invoke, resolve
 
 
 def _solid_topology(k, document_id, kind):
-    import pythoncom
-
     bodies = k.document(document_id).GetPart(-1).BodyCollection()
     objects = []
-    seen = []
+    seen = set()
     for index in range(bodies.GetCount()):
         body = bodies.GetByIndex(index)
         if not body.IsSolid():
@@ -24,20 +24,38 @@ def _solid_topology(k, document_id, kind):
                 definitions = [edges.GetByIndex(ei) for ei in range(edges.GetCount())]
             for definition in definitions:
                 entity = definition.GetEntity()
-                identity = entity._oleobj_.QueryInterface(pythoncom.IID_IUnknown)
+                identity = com_identity(entity)
                 if identity not in seen:
-                    seen.append(identity)
+                    seen.add(identity)
                     objects.append(entity)
     return objects
 
 
-def entities(k, document_id, kind="o3d_unknown", offset=0, limit=100, solid_only=True):
+def entities(
+    k, document_id, kind="o3d_unknown", offset=0, limit=100, solid_only=True, snapshot_id=None
+):
     if offset < 0 or not 1 <= limit <= 500:
         raise ValueError("offset >= 0 and limit 1..500 required")
     if kind not in k.constants or not kind.startswith("o3d_"):
         raise ValueError("Use an installed o3d_ constant")
     if solid_only and kind in {"o3d_edge", "o3d_face"}:
-        objects = _solid_topology(k, document_id, kind)
+        if document_id not in k.model_features:
+            from .documents import list_documents
+
+            list_documents(k)
+        stamp = k.model_features[document_id].UpdateStamp
+        if snapshot_id is None:
+            # Snapshots are explicit: no silent reuse after an external GUI rebuild.
+            k.topology_snapshots.clear()
+            snapshot_id = uuid4().hex
+            k.topology_snapshots[snapshot_id] = (
+                document_id, kind, _solid_topology(k, document_id, kind), stamp
+            )
+        snapshot = k.topology_snapshots.get(snapshot_id)
+        if snapshot is None or snapshot[:2] != (document_id, kind) or snapshot[3] != stamp:
+            k.topology_snapshots.pop(snapshot_id, None)
+            raise ValueError("stale_snapshot: refresh after rebuild, close or API mutation")
+        objects = snapshot[2]
         count = len(objects)
         get_object = objects.__getitem__
     else:
@@ -85,7 +103,11 @@ def entities(k, document_id, kind="o3d_unknown", offset=0, limit=100, solid_only
                     + [max(box[i] for box in boxes) for i in range(4, 7)]
                 )
         items.append(item)
-    return {"document_id": document_id, "total": count, "offset": offset, "entities": items}
+    return {
+        "document_id": document_id, "total": count, "offset": offset, "entities": items,
+        "snapshot_id": snapshot_id,
+        "scope": "own solid bodies only; child occurrences are not included",
+    }
 
 
 def configure(k, document_id, definition, settings: FeatureSettings):
@@ -118,6 +140,7 @@ def configure(k, document_id, definition, settings: FeatureSettings):
 
 
 def create(k, document_id, entity_type, name, settings: FeatureSettings):
+    k.invalidate_topology()
     if entity_type not in k.constants or not entity_type.startswith("o3d_"):
         raise ValueError(
             "Expected installed o3d_ type; use api_constants and sdk_read(obj3dtype.html)"
@@ -141,6 +164,7 @@ def create(k, document_id, entity_type, name, settings: FeatureSettings):
 
 
 def update(k, document_id, entity_id, settings: FeatureSettings):
+    k.invalidate_topology()
     obj = k.entity(document_id, entity_id)
     configure(k, document_id, obj.GetDefinition(), settings)
     require(obj.Update(), "update native feature")
@@ -149,6 +173,7 @@ def update(k, document_id, entity_id, settings: FeatureSettings):
 
 
 def state(k, document_id, entity_id, name=None, hidden=None, excluded=None):
+    k.invalidate_topology()
     obj = k.entity(document_id, entity_id)
     for key, value in {"name": name, "hidden": hidden, "excluded": excluded}.items():
         if value is not None:
@@ -164,6 +189,7 @@ def state(k, document_id, entity_id, name=None, hidden=None, excluded=None):
 
 
 def delete(k, document_id, entity_id):
+    k.invalidate_topology()
     obj = k.entity(document_id, entity_id)
     if obj.type in [k.constants[n] for n in ("o3d_edge", "o3d_face", "o3d_vertex")]:
         raise ValueError(

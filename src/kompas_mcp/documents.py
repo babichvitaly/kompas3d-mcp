@@ -1,8 +1,8 @@
 """Native API7 document lifecycle and assembly access, run on the COM worker."""
 
+import hashlib
 from pathlib import Path
 from typing import Literal
-from uuid import uuid4
 
 from .backend import output_path, require
 
@@ -25,54 +25,79 @@ def _cast(k, obj, interface):
 
 
 def _document(k, handle):
-    if handle not in k.handles:
-        raise ValueError("Unknown or closed document handle")
-    doc = _cast(k, k.handles[handle], "IKompasDocument")
+    doc = _cast(k, k.get_handle(handle), "IKompasDocument")
     # Accessing identity also rejects disconnected COM objects before mutation.
     _ = doc.DocumentType
     return doc
 
 
-def _info(k, doc):
-    kind = next(
-        (
-            name
-            for name, (constant, _) in KINDS.items()
-            if k.constants[constant] == doc.DocumentType
-        ),
-        "unknown",
-    )
+def _summary(k, doc):
+    """Read only document metadata; no TopPart, views or geometry expansion."""
+    scope = str(doc.Reference)
+    document_type = doc.DocumentType
+    kind = next((name for name, (constant, _) in KINDS.items()
+                 if k.constants[constant] == document_type), "unknown")
     result = {
-        "document": k.pack(doc),
-        "kind": kind,
-        "name": doc.Name,
-        "path": doc.PathName,
-        "changed": bool(doc.Changed),
-        "read_only": bool(doc.ReadOnly),
-        "active": bool(doc.Active),
+        "document": k.pack(doc, scope), "kind": kind, "name": doc.Name,
+        "path": doc.PathName, "changed": bool(doc.Changed),
+        "read_only": bool(doc.ReadOnly), "visible": bool(doc.Visible),
+        "active": bool(doc.Active), "owned_by_server": scope in k.owned_documents,
     }
-    if kind in {"part", "assembly"}:
-        model = _cast(k, doc, "IKompasDocument3D")
-        result.update(model=k.pack(model), top_part=k.pack(model.TopPart))
-        native = require(k.app.ksGetDocumentByReference(doc.Reference), "get API5 document")
-        document_id = next(
-            (key for key, existing in k.documents.items() if existing._oleobj_ == native._oleobj_),
-            None,
-        )
-        if document_id is None:
-            document_id = uuid4().hex
-            k.documents[document_id] = native
+    document_id = next((key for key, value in k.document_scopes.items() if value == scope), None)
+    if document_id:
         result["document_id"] = document_id
-    elif kind in {"drawing", "fragment"}:
-        drawing = _cast(k, doc, "IKompasDocument2D")
-        result.update(drawing=k.pack(drawing), views=k.pack(drawing.ViewsAndLayersManager.Views))
     return result
 
 
-def list_documents(k):
+def _info(k, doc):
+    result = _summary(k, doc)
+    scope, kind = str(doc.Reference), result["kind"]
+    if kind in {"part", "assembly"}:
+        model = _cast(k, doc, "IKompasDocument3D")
+        top_part = model.TopPart
+        result.update(model=k.pack(model, scope), top_part=k.pack(top_part, scope))
+        native = require(k.app.ksGetDocumentByReference(doc.Reference), "get API5 document")
+        document_id = k.register_document(native)
+        result["document_id"] = document_id
+        k.model_features[document_id] = _cast(k, top_part, "IFeature7")
+        k.document_scopes[document_id] = scope
+    elif kind in {"drawing", "fragment"}:
+        drawing = _cast(k, doc, "IKompasDocument2D")
+        result.update(
+            drawing=k.pack(drawing, scope), views=k.pack(drawing.ViewsAndLayersManager.Views, scope)
+        )
+    return result
+
+
+def _reconcile(k, docs):
+    live = {str(doc.Reference) for doc in docs}
+    # Legacy API5 entry points also have a scope, even before an API7 list.
+    for document_id, native in list(k.documents.items()):
+        if document_id not in k.document_scopes:
+            try:
+                k.document_scopes[document_id] = str(native.reference)
+            except Exception:  # noqa: BLE001 - disconnected legacy COM alias
+                k.documents.pop(document_id, None)
+                k.model_features.pop(document_id, None)
+                k.entities = {key: value for key, value in k.entities.items()
+                              if value[0] != document_id}
+    known = set(k.handle_scopes.values()) | set(k.document_scopes.values()) | k.owned_documents
+    for scope in known - live - {None}:
+        k.forget_document_scope(scope)
+
+
+def list_documents(k, details: bool = True):
+    """Legacy detailed mode remains default; details=False is the inexpensive list."""
     k.connect()
     collection = k.app.ksGetApplication7().Documents
-    return {"documents": [_info(k, collection.Item(i)) for i in range(collection.Count)]}
+    docs = [collection.Item(i) for i in range(collection.Count)]
+    _reconcile(k, docs)
+    describe = _info if details else _summary
+    return {"documents": [describe(k, doc) for doc in docs]}
+
+
+def document_details(k, handle: str):
+    return _info(k, _document(k, handle))
 
 
 def create_document(k, kind: DocumentKind, visible: bool = True):
@@ -83,57 +108,140 @@ def create_document(k, kind: DocumentKind, visible: bool = True):
         k.app.ksGetApplication7().Documents.Add(k.constants[KINDS[kind][0]], visible),
         f"create {kind}",
     )
+    k.owned_documents.add(str(doc.Reference))
     return _info(k, doc)
 
 
-def open_document(k, path: str, read_only: bool = False, visible: bool = True):
+def open_document(
+    k, path: str, read_only: bool = False, visible: bool = True, reuse_existing: bool = True
+):
     source = Path(path).expanduser()
     if not source.is_absolute() or not source.is_file():
         raise ValueError("Expected absolute path to an existing document")
     if source.suffix.lower() not in {extension for _, extension in KINDS.values()}:
         raise ValueError("Expected a native KOMPAS document")
     k.connect()
+    collection = k.app.ksGetApplication7().Documents
+    if reuse_existing:
+        for i in range(collection.Count):
+            existing = collection.Item(i)
+            if existing.PathName and Path(existing.PathName).resolve() == source.resolve():
+                if read_only and not existing.ReadOnly:
+                    raise ValueError(
+                        "read_only_mismatch: existing document is writable; "
+                        "use a separate copy for a read-only audit"
+                    )
+                return {**_info(k, existing), "reused": True}
+    before = {str(collection.Item(i).Reference) for i in range(collection.Count)}
     doc = require(
-        k.app.ksGetApplication7().Documents.Open(str(source.resolve()), visible, read_only),
+        collection.Open(str(source.resolve()), visible, read_only),
         "open native document",
     )
-    return _info(k, doc)
+    reused = str(doc.Reference) in before
+    if not reused:
+        k.owned_documents.add(str(doc.Reference))
+    result = {**_info(k, doc), "reused": reused}
+    if read_only and not result["read_only"]:
+        raise RuntimeError("read_only_mismatch: KOMPAS opened a writable document; inspect it")
+    return result
+
+
+def save_evidence(target):
+    if not target.is_file():
+        return None
+    stat = target.stat()
+    digest = hashlib.sha256()
+    with target.open("rb") as stream:
+        for block in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(block)
+    return (stat.st_size, stat.st_mtime_ns, digest.hexdigest())
+
+
+def verify_save(target, before, actual_path, changed=False):
+    if not target.is_file() or target.stat().st_size == 0:
+        raise RuntimeError("save_unconfirmed: SaveAs did not produce a nonempty file")
+    if not actual_path or Path(actual_path).resolve() != target.resolve() or changed:
+        raise RuntimeError("save_unconfirmed: native path/Changed postcondition failed")
+    after = save_evidence(target)
+    if before is not None and before == after:
+        raise RuntimeError("save_unconfirmed: existing output has no write evidence; inspect it")
+    return {"write_evidence": "created" if before is None else "updated",
+            "sha256": after[2], "changed": bool(changed)}
 
 
 def save_document(k, handle: str, path: str, overwrite: bool = False):
     doc = _document(k, handle)
     if doc.ReadOnly:
         raise ValueError("Document is read-only")
-    extensions = {
-        extension
-        for constant, extension in KINDS.values()
-        if k.constants[constant] == doc.DocumentType
-    }
+    extensions = {extension for constant, extension in KINDS.values()
+                  if k.constants[constant] == doc.DocumentType}
     target = output_path(path, extensions, overwrite)
-    doc.SaveAs(str(target))  # API7 SaveAs returns void; verify the output itself.
-    if not target.is_file() or target.stat().st_size == 0:
-        raise RuntimeError("KOMPAS SaveAs did not produce a nonempty file")
-    return {"path": str(target), "bytes": target.stat().st_size, "document": {"handle": handle}}
+    before = save_evidence(target)
+    doc.SaveAs(str(target))  # API7 SaveAs is void; do not infer success from return value.
+    evidence = verify_save(target, before, doc.PathName, bool(doc.Changed))
+    return {"path": str(target), "bytes": target.stat().st_size,
+            "document": {"handle": handle}, **evidence}
 
 
 def close_document(k, handle: str, discard_changes: bool = False):
     doc = _document(k, handle)
+    scope = str(doc.Reference)
+    # Reconcile API5 IDs before releasing the native document. Never infer ownership.
+    for document_id, native in list(k.documents.items()):
+        if document_id not in k.document_scopes:
+            k.document_scopes[document_id] = str(native.reference)
     if doc.Changed and not discard_changes:
         raise ValueError("Document has unsaved changes; save it or explicitly discard_changes")
-    native = k.app.ksGetDocumentByReference(doc.Reference)
-    ids = [
-        key
-        for key, value in k.documents.items()
-        if native is not None and value._oleobj_ == native._oleobj_
-    ]
     require(doc.Close(k.constants["kdDoNotSaveChanges"]), "close document")
-    for document_id in ids:
-        k.documents.pop(document_id, None)
-    for entity_id, (document_id, _) in list(k.entities.items()):
-        if document_id in ids:
-            k.entities.pop(entity_id, None)
-    k.handles.pop(handle, None)
-    return {"closed": True}
+    released = k.forget_document_scope(scope)
+    return {"closed": True, "released_handles": released}
+
+
+def close_documents(k, keep: list[str], candidates: list[str] | None = None, dry_run: bool = True):
+    """Close only explicit or server-owned unchanged candidates; no implicit discard.
+
+    Handles come from a fresh summary list. Identity, path and Changed are checked
+    again immediately before each close. Partial closure is returned, never retried.
+    """
+    listed = list_documents(k, details=False)["documents"]
+    by_handle = {row["document"]["handle"]: row for row in listed}
+    if len(keep) != len(set(keep)) or (candidates and len(candidates) != len(set(candidates))):
+        raise ValueError("Keep and candidate handles must be unique")
+    if any(handle not in by_handle for handle in keep + (candidates or [])):
+        raise ValueError("stale_handle: refresh the document list before closing")
+    selected = candidates if candidates is not None else [
+        key for key, row in by_handle.items() if row["owned_by_server"]]
+    if set(keep) & set(selected) and candidates is not None:
+        raise ValueError("Keep and explicit candidates overlap")
+    keep_scopes = {str(_document(k, handle).Reference) for handle in keep}
+    plan = []
+    for handle in selected:
+        row = by_handle[handle]
+        doc = _document(k, handle)
+        scope = str(doc.Reference)
+        state = "kept" if scope in keep_scopes else (
+            "skipped_changed" if doc.Changed else "candidate")
+        plan.append({"handle": handle, "scope": scope, "path": row["path"],
+                     "name": row["name"], "state": state})
+    if not dry_run:
+        for row in plan:
+            if row["state"] != "candidate":
+                continue
+            try:
+                doc = _document(k, row["handle"])
+                if str(doc.Reference) != row["scope"] or doc.PathName != row["path"]:
+                    row["state"] = "skipped_identity_changed"
+                elif doc.Changed:
+                    row["state"] = "skipped_changed"
+                else:
+                    # close_document repeats Changed immediately adjacent to Close.
+                    close_document(k, row["handle"])
+                    row["state"] = "closed"
+            except Exception as exc:  # noqa: BLE001 - preserve partial batch result
+                row.update(state="failed", error=str(exc))
+    return {"dry_run": dry_run, "documents": plan,
+            "closed_count": sum(row["state"] == "closed" for row in plan),
+            "discarded_changes": False}
 
 
 def insert_component(k, assembly_handle: str, path: str, linked: bool = True):

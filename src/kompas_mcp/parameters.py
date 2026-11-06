@@ -36,6 +36,7 @@ def list_variables(k, document_id, feature_id=None):
 def set_variable(
     k, document_id, name, value=None, expression=None, feature_id=None, create=False, note=""
 ):
+    k.invalidate_topology()
     if (value is None) == (expression is None):
         raise ValueError("Supply exactly one of value or expression")
     if not name.strip() or (expression is not None and not expression.strip()):

@@ -4,7 +4,22 @@
 
 Local Windows MCP server for broad KOMPAS-3D automation: native modeling and editing,
 parameters, assemblies, drawings, and documents. Blueprint and text-driven modeling
-remain the primary workflows. Includes **41 tools**, two prompts, and three rich skills.
+remain the primary workflows. Includes **60 tools**, two prompts, and three rich skills.
+
+Revision 13 adds runtime/schema diagnostics, queue status, bounded document
+batching, checked dependency copies, native sketch frames, explicit nested
+collision fixtures, body-connectedness diagnostics and existing-drawing PDF/DXF
+workflows. See [workflows and acceptance limits](docs/workflows-13.md).
+
+New tools: `audit_model`, `read_audit_report`, copy-scoped `check_collisions`.
+Also `inspect_sketches`, `constrain_sketch`, and `rebind_component_sources`:
+batch inventory via exported fragments, explicit coordinate constraint plans,
+and checked copy-to-copy source replacement. Mutation defaults to dry run;
+none of these operations implicitly saves the source document.
+`place_components` applies explicit rigid matrices in an isolated assembly copy,
+checks expected poses and unchanged peers, and preserves raw native update returns.
+Save/reopen and solid measurements remain separate persistence acceptance steps.
+See [audit scope, resource handling and limitations](docs/model-audit.md).
 Tested with **КОМПАС-3D v25 Home**, its installed SDK, and Python 3.12.
 
 The AI client interprets the description or drawing. This server executes native

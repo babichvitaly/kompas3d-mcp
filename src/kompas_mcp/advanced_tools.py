@@ -2,11 +2,114 @@
 
 from typing import Literal
 
-from . import bridge, documents, features, parameters
+from . import assemblies, audit, bridge, collisions, documents, features, parameters, sketches
 from .advanced_models import ApiBatch, EdgeTreatment, FeatureSettings
 
 
 def register(mcp, worker):
+    @mcp.tool()
+    async def place_components(
+        handle: str, copy_root: str, placements: list[dict], dry_run: bool = True,
+    ) -> dict:
+        """Move explicit immediate components on an isolated assembly copy.
+
+        Each change has index, expected (old 16-value matrix), and matrix (new).
+        Uses SDK row-vector convention; only rigid rotations/translations. Defaults
+        to dry run. Preserves fixed flags, sources and every unselected placement.
+        Does not save or solve mates; verify interference and save/reopen separately.
+        Partial failure requires discarding the owned copy's in-memory changes.
+        """
+        return await worker.call(lambda k: assemblies.place_components(
+            k, handle, copy_root, placements, dry_run
+        ))
+
+    @mcp.tool()
+    async def rebind_component_sources(
+        handle: str, copy_root: str, replacements: dict[str, str], dry_run: bool = True,
+    ) -> dict:
+        """Replace explicit immediate component sources on an isolated assembly copy.
+
+        Dry run defaults true. Both old/new sources and every assembly dependency
+        must be inside copy_root. Save/rebuild subassemblies bottom-up first. Checks
+        every immediate placement matrix and source after rebuild. Does not save,
+        infer replacements, validate mates or certify body geometry. A partial
+        failure requires discarding the owned in-memory assembly copy.
+        """
+        return await worker.call(lambda k: assemblies.rebind_sources(
+            k, handle, copy_root, replacements, dry_run
+        ))
+
+    @mcp.tool()
+    async def constrain_sketch(
+        handle: str, copy_root: str, name: str, expected_geometry: dict,
+        prefix: str = "Layout", dry_run: bool = True,
+    ) -> dict:
+        """Parameterize one unconstrained line/circle/arc sketch on an isolated copy.
+
+        Default dry run returns a coordinate layout plan. Explicit apply uses one
+        datum point, coincidences, axis alignments and editable driving dimensions;
+        no primitive is frozen. Requires the expected geometry inventory. Verifies
+        every primitive remains unchanged. Does not save or infer design intent,
+        tangencies or manufacturing equations. On failure discard the owned copy's
+        in-memory changes before retrying. Verify/reopen the part before promotion.
+        """
+        return await worker.call(lambda k: sketches.constrain_sketch(
+            k, handle, copy_root, name, expected_geometry, prefix, dry_run
+        ))
+
+    @mcp.tool()
+    async def inspect_sketches(
+        handle: str, copy_root: str, names: list[str] | None = None,
+        report_path: str | None = None,
+    ) -> dict:
+        """Read native sketch lines/circles/arcs and constraint states in one STA task.
+
+        Requires an isolated part copy. Names must be unambiguous. Exports native
+        FRW snapshots under copy_root/sketch-inventory and reads them read-only,
+        avoiding source edit mode. References belong to snapshots, not the source.
+        Verifies source constraint/dirty states. Does not save the source. An
+        optional new JSON report preserves geometry and copied constraint data.
+        """
+        return await worker.call(
+            lambda k: sketches.inspect_sketches(k, handle, copy_root, names, report_path)
+        )
+
+    @mcp.tool()
+    async def check_collisions(
+        handle: str, paths1: list[list[int]], paths2: list[list[int]], copy_root: str,
+        assembly_as_one: bool = True, limit: int = 200,
+    ) -> dict:
+        """Exact collision counts on isolated copies, using explicit occurrence index paths.
+
+        Verifies the entire dependency tree is inside copy_root, including excluded
+        sources. Removes its own temporary diagnostic. Does not save; Changed may
+        become true. Native ghost endpoints are explicitly inconclusive. A zero
+        scoped count is not a universal certificate for nested selections or fit.
+        Empty paths2 checks all selections in paths1 against each other.
+        """
+        return await worker.call(lambda k: collisions.check_collisions(
+            k, handle, paths1, paths2, copy_root, assembly_as_one, limit
+        ))
+
+    @mcp.tool()
+    async def audit_model(
+        handle: str, report_dir: str, include_excluded: bool = False, max_nodes: int = 10000
+    ) -> dict:
+        """Audit occurrence paths, recursive feature states, dependencies and own bodies.
+
+        Reads cached native state without rebuilding, saving or activating documents.
+        report_dir must be a new absolute directory. Detailed JSONL and durable progress
+        stay on disk; only a compact summary is returned. Does not certify geometry.
+        """
+        return await worker.call(
+            lambda k: audit.audit_model(k, handle, report_dir, include_excluded, max_nodes)
+        )
+
+    @mcp.tool()
+    def read_audit_report(report_dir: str, offset: int = 0, limit: int = 100) -> dict:
+        """Read persisted audit progress and a bounded page, including after client reconnection."""
+        return audit.read_report(report_dir, offset, limit)
+
     @mcp.tool()
     async def draw_line(
         drawing_handle: str,
@@ -89,9 +192,10 @@ def register(mcp, worker):
         )
 
     @mcp.tool()
-    async def list_documents() -> dict:
-        """List all open native documents with identity, changed/read-only state and typed API7 handles."""
-        return await worker.call(documents.list_documents)
+    async def list_documents(details: bool = False) -> dict:
+        """List document identity/state cheaply; expand typed model/view handles with details=true."""
+        return await worker.call(lambda k: documents.list_documents(k, details),
+                                 name="list_documents")
 
     @mcp.tool()
     async def create_document(kind: documents.DocumentKind, visible: bool = True) -> dict:
@@ -102,9 +206,13 @@ def register(mcp, worker):
         return await worker.call(lambda k: documents.create_document(k, kind, visible))
 
     @mcp.tool()
-    async def open_document(path: str, read_only: bool = False, visible: bool = True) -> dict:
-        """Open any of the six native document formats with explicit read-only/visibility choices."""
-        return await worker.call(lambda k: documents.open_document(k, path, read_only, visible))
+    async def open_document(
+        path: str, read_only: bool = False, visible: bool = True, reuse_existing: bool = True
+    ) -> dict:
+        """Open/reuse a canonical native path. Reject an existing writable doc if read-only requested."""
+        return await worker.call(
+            lambda k: documents.open_document(k, path, read_only, visible, reuse_existing)
+        )
 
     @mcp.tool()
     async def save_document(handle: str, path: str, overwrite: bool = False) -> dict:
@@ -194,6 +302,7 @@ def register(mcp, worker):
         offset: int = 0,
         limit: int = 100,
         solid_only: bool = True,
+        snapshot_id: str | None = None,
     ) -> dict:
         """Discover existing native entities, including imported/reopened models.
 
@@ -203,7 +312,7 @@ def register(mcp, worker):
         Select by geometric evidence. Rediscover topology after modifications.
         """
         return await worker.call(
-            lambda k: features.entities(k, document_id, kind, offset, limit, solid_only)
+            lambda k: features.entities(k, document_id, kind, offset, limit, solid_only, snapshot_id)
         )
 
     @mcp.tool()

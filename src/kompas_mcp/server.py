@@ -251,8 +251,14 @@ def model_from_description(description: str) -> str:
 
 
 from .advanced_tools import register
+from .drawing_tools import register as register_drawings
+from .geometry_tools import register as register_geometry
+from .runtime_tools import register as register_runtime
 
 register(mcp, worker)
+register_drawings(mcp, worker)
+register_geometry(mcp, worker)
+register_runtime(mcp, worker)
 
 
 def main():
