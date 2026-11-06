@@ -18,6 +18,8 @@ from pathlib import Path
 from . import documents
 from .backend import require
 from .documents import _cast, _document
+from .instrumentation import timed_phase
+from .job_results import phase
 from .project_copy import native_document, verify_external_isolation
 
 GEOMETRY = {
@@ -34,6 +36,7 @@ def _digest(value):
                                      allow_nan=False).encode("utf-8")).hexdigest()
 
 
+@timed_phase("source.sha256")
 def _file_hash(path):
     with Path(path).open("rb") as stream:
         return hashlib.file_digest(stream, "sha256").hexdigest()
@@ -79,6 +82,7 @@ def _copy(k, handle, copy_root, writable=True):
     return doc, folder, path
 
 
+@timed_phase("source.boundary")
 def _dependency_snapshot(k, doc, root, sources=()):
     """Read the recursive SDK closure of the CDW and every old/new model root.
 
@@ -128,6 +132,7 @@ def _stamp(sheet, limit):
     return result
 
 
+@timed_phase("native.drawing.inventory")
 def _inventory(k, doc, geometry, max_objects):
     drawing = _cast(k, doc, "IKompasDocument2D")
     views = drawing.ViewsAndLayersManager.Views
@@ -512,6 +517,7 @@ def _remove_new_auto_captions(k, before, after, objects, numbers, result, report
     return removed
 
 
+@timed_phase("native.drawing.rebind")
 def rebind_drawing_views(k, handle, copy_root, replacements, expected_fingerprint,
                          dimension_changes=None, view_changes=None, geometry_checks=None,
                          dry_run=True, report_path=None, remove_new_auto_captions=None):
@@ -550,11 +556,13 @@ def rebind_drawing_views(k, handle, copy_root, replacements, expected_fingerprin
             assoc = objects[number]["association"]
             assoc.SourceFileName = source
             assoc.UseOcclusion = False
-            require(assoc.Update(), f"update associative view {number}")
+            with phase("native.view.update", counts={"native_calls": 1}):
+                require(assoc.Update(), f"update associative view {number}")
             result["completed_steps"].append({"view_number": number, "operation": "source_update"})
             _report(report_path, result, root)
         for number in selected:
-            require(objects[number]["association"].Rebuild(), f"rebuild associative view {number}")
+            with phase("native.view.rebuild", counts={"native_calls": 1}):
+                require(objects[number]["association"].Rebuild(), f"rebuild associative view {number}")
             result["completed_steps"].append({"view_number": number, "operation": "view_rebuild"})
             _report(report_path, result, root)
         for (number, index), item in dims.items():
@@ -716,6 +724,7 @@ def _dxf_dimensions(pairs):
             "block_definitions": len(definitions), "validated_entity_records": visited}
 
 
+@timed_phase("export.validate")
 def validate_export(path, minimum_dimensions=0):
     """Parse output, not just file length. Layout approval still requires rendering."""
     source = Path(path)
@@ -824,6 +833,7 @@ def _restore_export_source(k, path, before_identity, expected_content):
     return doc, info, receipt
 
 
+@timed_phase("native.drawing.export")
 def export_drawing(k, handle, copy_root, paths, report_path=None):
     """Export a saved owned drawing copy via native converters, never auto-save it."""
     doc, root, drawing_path = _copy(k, handle, copy_root, writable=False)

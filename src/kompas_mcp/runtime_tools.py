@@ -29,7 +29,7 @@ def health_snapshot(worker, schemas):
     except importlib.metadata.PackageNotFoundError:
         version = "uninstalled-source"
     return {
-        "server": "kompas3d-mcp", "package_version": version, "runtime_revision": "13",
+        "server": "kompas3d-mcp", "package_version": version, "runtime_revision": "14",
         "loaded_source_directory": str(Path(__file__).resolve().parent),
         "python": sys.version.split()[0],
         "loaded_code_fingerprint": LOADED_CODE_FINGERPRINT,

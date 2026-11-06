@@ -211,3 +211,16 @@ a workflow to live verified.
 Do not silently use mesh approximations for native parametric deliverables, report
 an annotated thread as physical helical geometry, or count unsupported library
 commands as available merely because unrestricted COM invocation exists.
+# Runtime 14 development additions
+
+`inspect_drawing_view_state`, `compare_drawing_view_state` and
+`find_visible_view_anchor` have typed validation and synthetic regression checks.
+Their presence in an installed MCP schema is checked without starting CAD.
+New live view geometry/visibility acceptance is not claimed. Existing native
+runtime-13 evidence below keeps its original scope.
+
+Persistent job results, CLI terminal verification and offline project staging
+are covered by unit/filesystem tests. Windows metadata regression compares
+`stat` and `fstat` within separate channels, retaining device/inode binding and
+SHA verification. `files_staged_not_rebound` is not native-link isolation.
+Package installation/schema smoke does not certify portable project relocation.

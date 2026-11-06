@@ -9,9 +9,10 @@ from mcp.server.fastmcp import FastMCP, Image
 from pydantic import JsonValue
 
 from .models import ExtrusionSpec, RevolutionSpec, SketchSpec
+from .runtime_tools import LOADED_CODE_FINGERPRINT
 from .worker import ComWorker
 
-worker = ComWorker()
+worker = ComWorker(runtime_metadata={"loaded_code_fingerprint": LOADED_CODE_FINGERPRINT})
 
 
 @asynccontextmanager

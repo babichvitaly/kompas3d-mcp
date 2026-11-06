@@ -175,3 +175,16 @@ uv run ruff check src tests scripts
 ## Лицензия
 
 Проект распространяется по лицензии [MIT](LICENSE). Условия использования КОМПАС-3D и SDK определяются АСКОН.
+# Development package 0.2.0.dev2
+
+Изолированный кандидат инструментария: `kompas-cad capabilities`,
+`verify-result`, `run-recipe`, `package-preflight` и `package-stage`.
+Новая версия добавляет сохранённые результаты заданий, фазовые таймеры,
+проверку камеры/Unfold/видимой геометрии и подготовку файлов проекта.
+Модульные проверки не заменяют native-приёмку: staging не перепривязывает
+ссылки и не подтверждает переносимость CAD-проекта. Подключение существующего
+MCP-клиента и пользовательский конфиг автоматически не изменяются.
+
+Контракты и использование: [workflows-14](docs/workflows-14.md),
+[job-results](docs/job-results.md), [view-state](docs/view-state.md),
+[project-package](docs/project-package.md).

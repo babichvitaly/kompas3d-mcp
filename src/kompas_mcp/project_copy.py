@@ -14,10 +14,12 @@ from pathlib import Path
 from .audit import IDENTITY, matrix, multiply, write_json
 from .backend import require
 from .documents import KINDS, _cast, _document
+from .instrumentation import timed_phase
 
 NATIVE = {extension for _, extension in KINDS.values()}
 
 
+@timed_phase("source.sha256")
 def digest(path):
     value = hashlib.sha256()
     with Path(path).open("rb") as stream:
@@ -99,6 +101,7 @@ def verify_external_isolation(k, doc, copy_root):
     return links
 
 
+@timed_phase("native.occurrences")
 def occurrence_snapshot(k, doc, max_nodes=50000):
     """Fresh path identities, including excluded components and embedded children."""
     if doc.DocumentType not in {k.constants["ksDocumentPart"], k.constants["ksDocumentAssembly"]}:
@@ -172,6 +175,7 @@ def assert_occurrences(expected, actual, mapping=None, tolerance=1e-8):
                 raise RuntimeError(f"Placement changed at occurrence {a['path']}")
 
 
+@timed_phase("native.dependencies.scan")
 def scan_closure(k, root_path, max_files=5000):
     graph, files = {}, {}
 
@@ -234,6 +238,7 @@ def replacement_plan(source_links, current_links, copied_path, mapping, target):
     return changes
 
 
+@timed_phase("native.dependencies.copy")
 def create_isolated_copy(k, handle, destination, dry_run=True, max_files=5000):
     """Native dependency closure, copied once, rebound bottom-up and reopened.
 

@@ -5,6 +5,8 @@ from pathlib import Path
 from typing import Literal
 
 from .backend import output_path, require
+from .instrumentation import timed_phase
+from .job_results import phase
 
 DocumentKind = Literal["part", "assembly", "drawing", "fragment", "specification", "text"]
 KINDS = {
@@ -86,6 +88,7 @@ def _reconcile(k, docs):
         k.forget_document_scope(scope)
 
 
+@timed_phase("native.documents.inventory")
 def list_documents(k, details: bool = True):
     """Legacy detailed mode remains default; details=False is the inexpensive list."""
     k.connect()
@@ -112,6 +115,7 @@ def create_document(k, kind: DocumentKind, visible: bool = True):
     return _info(k, doc)
 
 
+@timed_phase("native.document.open")
 def open_document(
     k, path: str, read_only: bool = False, visible: bool = True, reuse_existing: bool = True
 ):
@@ -169,6 +173,7 @@ def verify_save(target, before, actual_path, changed=False):
             "sha256": after[2], "changed": bool(changed)}
 
 
+@timed_phase("native.document.save")
 def save_document(k, handle: str, path: str, overwrite: bool = False):
     doc = _document(k, handle)
     if doc.ReadOnly:
@@ -177,12 +182,14 @@ def save_document(k, handle: str, path: str, overwrite: bool = False):
                   if k.constants[constant] == doc.DocumentType}
     target = output_path(path, extensions, overwrite)
     before = save_evidence(target)
-    doc.SaveAs(str(target))  # API7 SaveAs is void; do not infer success from return value.
+    with phase("native.document.SaveAs", counts={"native_calls": 1}):
+        doc.SaveAs(str(target))  # API7 SaveAs is void; do not infer success from return value.
     evidence = verify_save(target, before, doc.PathName, bool(doc.Changed))
     return {"path": str(target), "bytes": target.stat().st_size,
             "document": {"handle": handle}, **evidence}
 
 
+@timed_phase("native.document.close")
 def close_document(k, handle: str, discard_changes: bool = False):
     doc = _document(k, handle)
     scope = str(doc.Reference)
@@ -271,6 +278,7 @@ def insert_component(k, assembly_handle: str, path: str, linked: bool = True):
     }
 
 
+@timed_phase("native.views.create")
 def create_standard_views(
     k,
     drawing_handle: str,
@@ -351,8 +359,10 @@ def create_standard_views(
             # AddStandartViews inherits application defaults. Draft projection
             # reported success but no drawing objects on the tested installation.
             view.UseOcclusion = draft_projection
-            require(view.Update(), f"update view {view.Number}")
-            require(view.Rebuild(), f"rebuild view {view.Number}")
+            with phase("native.view.update", counts={"native_calls": 1}):
+                require(view.Update(), f"update view {view.Number}")
+            with phase("native.view.rebuild", counts={"native_calls": 1}):
+                require(view.Rebuild(), f"rebuild view {view.Number}")
         metadata = [
             {
                 "number": view.Number,

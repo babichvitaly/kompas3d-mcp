@@ -1,9 +1,58 @@
 """Typed drawing operations; all native work stays on the existing COM worker."""
 
-from . import drawings
+from . import drawings, view_state
+from .view_state import ViewState
 
 
 def register(mcp, worker):
+    @mcp.tool()
+    async def inspect_drawing_view_state(
+        handle: str, view_number: int, max_objects: int = 50000,
+    ) -> dict:
+        """Read an associative camera, Unfold, pose, bounds and actual projected curves.
+
+        Never activates, updates, rebuilds or saves. Rejects empty/invalid geometry,
+        zero scale and missing source bytes. Disk SHA is provenance, not proof of
+        regeneration. References are session-local; state can be compared after RO
+        reopen. Coverage is line segments, circles and arcs, not all 2D object types.
+        """
+        return await worker.call(lambda k: view_state.inspect_view_state(
+            k, handle, view_number, max_objects
+        ))
+
+    @mcp.tool()
+    async def compare_drawing_view_state(
+        handle: str, view_number: int, expected: ViewState, max_objects: int = 50000,
+    ) -> dict:
+        """Reinspect and compare against an explicit typed state, including camera/Unfold.
+
+        Returns matches/differences; it does not repair mismatches or certify saved
+        or visual results. Each independent RO cycle must be performed separately.
+        """
+        return await worker.call(lambda k: view_state.compare_view_state(
+            k, handle, view_number, expected.model_dump(mode="json"), max_objects
+        ))
+
+    @mcp.tool()
+    async def find_visible_view_anchor(
+        handle: str, view_number: int, source_document_handle: str, component_handle: str,
+        expected_fingerprint: str, near_point: tuple[float, float] | None = None,
+        max_objects: int = 5000,
+    ) -> dict:
+        """Resolve a real visible component curve through native AssociationObjects.
+
+        Requires an already-current view and a clean explicit source document;
+        component handle must have that document's scope. Does not activate or
+        repair pose. Matches native visibility, owner view, Valid and non-Temp;
+        line/circle candidates only. near_point is view-space XY, not source XYZ.
+        A projection coordinate alone is never accepted. Re-resolve after any
+        update/reopen; returned native reference is not a persistent feature ID.
+        """
+        return await worker.call(lambda k: view_state.find_visible_anchor(
+            k, handle, view_number, source_document_handle, component_handle,
+            expected_fingerprint, near_point, max_objects
+        ))
+
     @mcp.tool()
     async def inspect_drawing(
         handle: str, include_geometry: bool = True, report_path: str | None = None,

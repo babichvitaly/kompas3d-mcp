@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "kompas3d-mcp"
-version = "0.1.0"
+version = "0.2.0.dev2"
 description = "Local KOMPAS-3D MCP server and blueprint modeling workflows"
 readme = "README.md"
 license = "MIT"
@@ -21,6 +21,7 @@ dependencies = ["mcp>=1.29.1,<2", "pydantic>=2.12,<3", "pywin32>=311; sys_platfo
 
 [project.scripts]
 kompas3d-mcp = "kompas_mcp.server:main"
+kompas-cad = "kompas_mcp.cli:main"
 
 [dependency-groups]
 dev = ["pytest>=8", "ruff>=0.12"]
