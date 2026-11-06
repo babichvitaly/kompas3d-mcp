@@ -1,4 +1,4 @@
-# Development toolkit 0.2.0.dev2 / runtime 14
+# Development toolkit 0.2.0.dev4 / runtime 14
 
 This is an installable development candidate, not a claim of general CAD or
 manufacturing coverage. It builds on the preserved runtime-13 implementation.
@@ -64,6 +64,14 @@ camera, activate Current, modify Unfold, rebuild a view or save a document.
 Configure/local-cut mutations still require dedicated native acceptance.
 Re-resolve view/curve handles after model updates or reopening. See the
 supported-curve and identity constraints in [view-state](view-state.md).
+
+The dev4 anchor guard requires native `IViews.ActiveView` to identify the
+requested view before state/geometry inspection, after each state inspection,
+and after association enumeration. `IView.Current=True` can be pending until
+`IDrawingObject.Update`; its getter alone does not establish committed context.
+Pending getters can expose a zero scale, so context rejection precedes pose
+validation. The caller owns that update and pose restoration. The read-only
+anchor tool never commits pending settings or repairs pose.
 
 ## Project staging
 

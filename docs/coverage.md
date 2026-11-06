@@ -219,6 +219,12 @@ Their presence in an installed MCP schema is checked without starting CAD.
 New live view geometry/visibility acceptance is not claimed. Existing native
 runtime-13 evidence below keeps its original scope.
 
+The dev4 candidate checks `IViews.ActiveView` identity before state/geometry
+inspection, after each inspection and after association enumeration. A pending
+`Current=True` flag is insufficient and can expose a zero scale getter. Its new
+synthetic regression cases and installed-candidate native checks must be run
+before this guard is accepted; presence in source is not a passing test result.
+
 Persistent job results, CLI terminal verification and offline project staging
 are covered by unit/filesystem tests. Windows metadata regression compares
 `stat` and `fstat` within separate channels, retaining device/inode binding and

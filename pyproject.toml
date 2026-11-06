@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "kompas3d-mcp"
-version = "0.2.0.dev2"
+version = "0.2.0.dev4"
 description = "Local KOMPAS-3D MCP server and blueprint modeling workflows"
 readme = "README.md"
 license = "MIT"

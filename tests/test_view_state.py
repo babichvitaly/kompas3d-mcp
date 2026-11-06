@@ -79,7 +79,8 @@ def native(monkeypatch, tmp_path):
     curves = [line, line2, circle]
     view.AssociationObjects = lambda component: tuple(curves)
     container = NS(LineSegments=Items([line, line2]), Circles=Items([circle]), Arcs=Items())
-    drawing = NS(ViewsAndLayersManager=NS(Views=NS(ViewByNumber=lambda number: view)))
+    views = NS(ViewByNumber=lambda number: view, ActiveView=view)
+    drawing = NS(ViewsAndLayersManager=NS(Views=views))
     extra = NS(GetObjectsGabarit=lambda v: [True, 0., 0., 10., 20.])
     docs = {"drawing": drawing_doc, "source": source_doc}
     monkeypatch.setattr(view_state, "_document", lambda k, handle: docs[handle])
@@ -103,7 +104,7 @@ def native(monkeypatch, tmp_path):
            handle_scopes={"part": "20"}, get_handle=lambda handle: NS(Reference=30))
     result = NS(k=k, source=source, source_doc=source_doc, doc=drawing_doc, view=view,
                 container=container, extra=extra, curves=curves, line=line, circle=circle,
-                calls=calls)
+                calls=calls, views=views)
     result.inspect = lambda **kw: view_state.inspect_view_state(k, "drawing", 1, **kw)
 
     def anchor(**kw):
@@ -219,6 +220,122 @@ def test_anchor_selects_an_actual_visible_curve_and_returns_state_provenance(nat
     assert result["anchor_ref"] == "101"
     assert result["anchor_model_xy"] == [0., 10.]
     assert result["source_sha256"] == native.inspect()["state"]["source_sha256"]
+    assert not native.calls
+
+
+@pytest.mark.parametrize("problem", ["missing", "invalid", "number", "reference"])
+def test_pending_current_rejects_before_inspection(native, monkeypatch, problem):
+    # Native put_Current(True) can be pending until IDrawingObject.Update.
+    fingerprint = native.inspect()["fingerprint"]
+    assert native.view.Current is True
+    active = NS(Valid=True, Number=1, Reference=11)
+    if problem == "missing":
+        active = None
+    elif problem == "invalid":
+        active.Valid = False
+    elif problem == "number":
+        active.Number = 2
+    else:
+        active.Reference = 222
+    native.views.ActiveView = active
+    native.view.Scale = 0.  # Native pending Current can expose a zero scale getter.
+    monkeypatch.setattr(view_state, "inspect_view_state", lambda *args, **kw: pytest.fail(
+        "Pending Current must not inspect view state"))
+    monkeypatch.setattr(view_state, "_geometry", lambda *args, **kw: pytest.fail(
+        "Pending Current must not inspect geometry"))
+    native.view.AssociationObjects = lambda component: pytest.fail("Pending Current must not enumerate")
+    with pytest.raises(ValueError, match="committed Current"):
+        view_state.find_visible_anchor(native.k, "drawing", 1, "source", "part", fingerprint)
+    assert native.view.Current is True and not native.calls
+
+
+def test_committed_active_view_uses_native_identity_not_python_wrapper_identity(native):
+    native.views.ActiveView = NS(Valid=True, Number=1, Reference=11)
+    assert native.views.ActiveView is not native.view
+    assert native.anchor()["actual_visible_native_projection"]
+    assert not native.calls
+
+
+@pytest.mark.parametrize("inspection", [1, 2])
+def test_anchor_rechecks_context_after_each_inspection(native, monkeypatch, inspection):
+    fingerprint = native.inspect()["fingerprint"]
+    inspect = view_state.inspect_view_state
+    inspected, enumerated = [], []
+
+    def changed(*args, **kw):
+        result = inspect(*args, **kw)
+        inspected.append(True)
+        if len(inspected) == inspection:
+            native.views.ActiveView = NS(Valid=True, Number=0, Reference=12)
+        return result
+
+    def enumerate_curves(component):
+        enumerated.append(True)
+        return tuple(native.curves)
+
+    monkeypatch.setattr(view_state, "inspect_view_state", changed)
+    native.view.AssociationObjects = enumerate_curves
+    with pytest.raises(RuntimeError, match="Current view changed during anchor resolution"):
+        view_state.find_visible_anchor(native.k, "drawing", 1, "source", "part", fingerprint)
+    assert len(enumerated) == inspection-1
+    assert native.view.Current is True and not native.calls
+
+
+@pytest.mark.parametrize("problem", ["missing", "invalid", "number", "reference"])
+def test_anchor_rechecks_active_view_before_final_inspection(native, monkeypatch, problem):
+    fingerprint = native.inspect()["fingerprint"]
+    inspect = view_state.inspect_view_state
+    inspected = []
+
+    def inspect_once(*args, **kw):
+        inspected.append(True)
+        if len(inspected) > 1:
+            pytest.fail("Changed active context must be rejected before final state inspection")
+        return inspect(*args, **kw)
+
+    def changed(component):
+        active = NS(Valid=True, Number=1, Reference=11)
+        if problem == "missing":
+            active = None
+        elif problem == "invalid":
+            active.Valid = False
+        elif problem == "number":
+            active.Number = 2
+        else:
+            active.Reference = 222
+        native.views.ActiveView = active
+        native.view.Scale = 0.
+        return tuple(native.curves)
+
+    monkeypatch.setattr(view_state, "inspect_view_state", inspect_once)
+    native.view.AssociationObjects = changed
+    with pytest.raises(RuntimeError, match="Current view changed during anchor resolution"):
+        view_state.find_visible_anchor(native.k, "drawing", 1, "source", "part", fingerprint)
+    assert len(inspected) == 1 and native.view.Current is True and not native.calls
+
+
+@pytest.mark.parametrize("when", ["before", "during"])
+def test_active_view_native_getter_failure_is_not_hidden(native, when):
+    class BrokenActiveView:
+        Valid = True
+        Reference = 11
+
+        @property
+        def Number(self):
+            raise RuntimeError("synthetic disconnected ActiveView getter")
+
+    if when == "before":
+        native.views.ActiveView = BrokenActiveView()
+        native.view.AssociationObjects = lambda component: pytest.fail(
+            "Invalid native active context must not enumerate")
+    else:
+        def changed(component):
+            native.views.ActiveView = BrokenActiveView()
+            return tuple(native.curves)
+
+        native.view.AssociationObjects = changed
+    with pytest.raises(RuntimeError, match="disconnected ActiveView getter"):
+        native.anchor()
     assert not native.calls
 
 

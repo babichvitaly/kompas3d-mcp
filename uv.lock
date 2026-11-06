@@ -294,7 +294,7 @@ wheels = [
 
 [[package]]
 name = "kompas3d-mcp"
-version = "0.2.0.dev2"
+version = "0.2.0.dev4"
 source = { editable = "." }
 dependencies = [
     { name = "mcp" },

@@ -266,12 +266,23 @@ def _curve_anchor(k, obj, view_reference, near_point):
             "reference": str(draw.Reference)}
 
 
+def _is_committed_current(k, doc, view):
+    """Reject a pending Current=True that has not become the native ActiveView."""
+    if not view.Current:
+        return False
+    active = _cast(k, doc, "IKompasDocument2D").ViewsAndLayersManager.Views.ActiveView
+    return (active is not None and bool(active.Valid)
+            and str(active.Reference) == str(view.Reference)
+            and int(active.Number) == int(view.Number))
+
+
 def find_visible_anchor(k, handle, view_number, source_document_handle, component_handle,
                         expected_fingerprint, near_point=None, max_objects=5000):
     """Resolve only real visible AssociationObjects of an explicit scoped component.
 
-    The caller must already have made this view Current on its owned drawing copy
-    and captured/restored its positive pose. This function never toggles Current.
+    The caller must already have committed Current with Update on its owned
+    drawing copy and captured/restored its positive pose. Native ActiveView must
+    identify this view. This function never toggles Current or calls Update.
     Returned references expire after update/reopen; resolve again, do not persist.
     """
     _limit(max_objects)
@@ -279,14 +290,19 @@ def find_visible_anchor(k, handle, view_number, source_document_handle, componen
         if len(near_point) != 2:
             raise ValueError("near_point must be an explicit finite view-space XY pair")
         near_point = [_number(x) for x in near_point]
+    drawing_doc, view, association = _view(k, handle, view_number)
+    drawing_identity = (str(drawing_doc.Reference), _path_key(drawing_doc.PathName),
+                        str(view.Reference))
+    if not _is_committed_current(k, drawing_doc, view):
+        raise ValueError("View must already be committed Current; this read-only operation does not activate it")
     before = inspect_view_state(k, handle, view_number)
     if expected_fingerprint != before["fingerprint"]:
         raise ValueError("Stale view fingerprint; resolve state and anchor again")
     drawing_doc, view, association = _view(k, handle, view_number)
-    drawing_identity = (str(drawing_doc.Reference), _path_key(drawing_doc.PathName),
-                        str(view.Reference))
-    if not view.Current:
-        raise ValueError("View must already be Current; this read-only operation does not activate it")
+    if (drawing_identity != (str(drawing_doc.Reference), _path_key(drawing_doc.PathName),
+                             str(view.Reference))
+            or not _is_committed_current(k, drawing_doc, view)):
+        raise RuntimeError("Drawing identity or Current view changed during anchor resolution")
     source_doc = _document(k, source_document_handle)
     source_identity = (str(source_doc.Reference), _path_key(source_doc.PathName))
     if (_path_key(source_doc.PathName) != _path_key(before["state"]["source"])
@@ -306,11 +322,17 @@ def find_visible_anchor(k, handle, view_number, source_document_handle, componen
             skipped[reason] = skipped.get(reason, 0)+1
         else:
             choices.append(item)
+    final_doc, final_view, _ = _view(k, handle, view_number)
+    if (drawing_identity != (str(final_doc.Reference), _path_key(final_doc.PathName),
+                             str(final_view.Reference))
+            or not _is_committed_current(k, final_doc, final_view)):
+        raise RuntimeError("Drawing identity or Current view changed during anchor resolution")
     after = inspect_view_state(k, handle, view_number)
     final_doc, final_view, _ = _view(k, handle, view_number)
     final_source = _document(k, source_document_handle)
     if (drawing_identity != (str(final_doc.Reference), _path_key(final_doc.PathName),
-                             str(final_view.Reference)) or not final_view.Current):
+                             str(final_view.Reference))
+            or not _is_committed_current(k, final_doc, final_view)):
         raise RuntimeError("Drawing identity or Current view changed during anchor resolution")
     if (source_identity != (str(final_source.Reference), _path_key(final_source.PathName))
             or final_source.Changed

@@ -16,8 +16,14 @@ paths, dimensions, geometry IDs or product truth tables.
   `IAssociationView.AssociationObjects`. It accepts only valid, non-temporary,
   visible line/circle projections whose owner is this view. The component handle
   must be scoped to an explicit clean source document matching the view's source.
-  The view must already be Current; this function deliberately does not switch it.
-  Capture the state after making Current and restore/check the caller's original
+  The view must already be committed Current: the caller sets Current=True and
+  calls IDrawingObject.Update under its owned-copy lifecycle. Native
+  IViews.ActiveView must be valid and match the view's Number and Reference;
+  a pending Current=True alone is insufficient. This function does not switch it.
+  The committed context is checked before state/geometry inspection, immediately
+  after each state inspection, and after enumerating association candidates.
+  A pending zero-scale getter is not read in place of the early context refusal.
+  Capture the state after committing Current and restore/check the caller's original
   positive pose under its existing owned-copy lifecycle. Supply this current state
   fingerprint; stale plans fail. `near_point` is optional view-space XY.
   Before accepting the anchor, document identities, source `Changed`, component
