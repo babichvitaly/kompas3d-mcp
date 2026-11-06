@@ -76,3 +76,15 @@ After explicit CAD handover, run only on new synthetic owned copies:
 
 No production models, local engineering receipts or machine-specific paths are
 part of this repository checkpoint.
+
+## Typed feature identity
+
+`model_identity.model_reference(k, feature, expected_reference=None)` explicitly
+casts to `IModelObject` before reading `Reference`. Generated `IFeature7` wrappers
+need not expose that member; a dynamic Dispatch fallback is not used. A mismatch
+or failed QueryInterface blocks the caller's subsequent mutation. The helper is
+read-only; deletion still belongs to `IFeature7.Delete`, and document identity,
+path and ownership checks remain the caller's responsibility. Existing typed
+identity traversal in audit/body diagnostics already uses `IModelObject`.
+Offline regression doubles deliberately expose Delete on IFeature7 without a
+Reference member. Native verification remains pending CAD handover.
