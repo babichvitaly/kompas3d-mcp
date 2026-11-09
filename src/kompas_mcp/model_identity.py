@@ -18,3 +18,18 @@ def model_reference(k, feature, expected_reference=None):
         if reference != expected_reference:
             raise ValueError("Model object reference changed; mutation blocked")
     return reference
+
+
+def drawing_reference(k, obj, expected_reference=None):
+    """IPositionLeader and other typed 2D wrappers need IDrawingObject.Reference."""
+    from .documents import _cast
+
+    reference = _cast(k, obj, 'IDrawingObject').Reference
+    if isinstance(reference, bool) or not isinstance(reference, int):
+        raise TypeError('Expected an integer IDrawingObject.Reference')
+    if expected_reference is not None:
+        if isinstance(expected_reference, bool) or not isinstance(expected_reference, int):
+            raise TypeError('Expected an integer reference precondition')
+        if reference != expected_reference:
+            raise ValueError('Drawing object reference changed; mutation blocked')
+    return reference
