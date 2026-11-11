@@ -113,7 +113,13 @@ def main(argv=None):
             except (OSError, ValueError, TypeError) as exc:
                 result = {"execution_status": "failed" if launcher_returncode else "unreported",
                           "exit_code": 1 if launcher_returncode else 2,
-                          "reason": str(exc), "retry_allowed": False}
+                          "reason": str(exc), "retry_allowed": False,
+                          "phase": "reconciliation_required",
+                          "recipe_started": True, "child_pid": launched.pid,
+                          "terminal_result_path": str(terminal),
+                          "terminal_result_argument": args.terminal_result,
+                          "recovery": "Recipe already ran. Inspect argv/path transport and the "
+                                      "existing receipt; verify it separately. Do not rerun mutation."}
             result["launcher_returncode"] = launcher_returncode
             result["launcher_job_id"] = job_id
             result["launcher_elapsed_seconds"] = time.monotonic() - started
