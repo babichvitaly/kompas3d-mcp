@@ -101,3 +101,29 @@ receipt without launching the recipe again.
 No installed SDK/configuration, existing CAD files, application processes, VM
 settings or publication state are changed by this checkpoint. Dynamic following,
 package portability and native geometry correctness remain separate gates.
+
+## Sequential binding executor checkpoint
+
+`row_binding.bind_row_geometry_owned(expected_key, boundary_kind, adapter)` now
+implements the callback order with a platform-independent injected adapter.
+`RowBindingAdapter` defines the required ownership guard, explicit boundary,
+fresh resolver, identity getters, inclusion/update calls and geometry readback.
+It does not ship a native COM adapter or connect to any application.
+
+The guard runs before each adapter call and at completion. The frozen semantic
+key is copied for each resolver call. After the boundary, a fresh occurrence is
+resolved and included; after row.Update, a second fresh occurrence is resolved.
+Row UUID must persist and Geometry must equal the singleton second reference.
+An Update=False observation may pass only with that exact readback. Missing
+adapter callbacks fail before mutation. No save, close, fallback or retry occurs.
+Failure receipts identify the phase and completed callbacks; mutation_possible
+is marked before entering a mutating callback, including uncertain exceptions.
+Success is `binding_verified_in_adapter`; native acceptance remains pending.
+
+Stateful synthetic regressions invalidate occurrence wrappers on each mutation,
+including stale interfaces whose getters still work. They test three boundary
+kinds, False Update, wrong source/binding/UUID, extra geometry, ownership loss and
+native-like exceptions. This establishes orchestration against the synthetic
+adapter only. The native adapter still needs explicit owned-document/path checks,
+ambiguous-lookup rejection, typed getters, STA execution, and saved-copy acceptance
+under exclusive CAD ownership; none of those runtime claims is inferred here.
