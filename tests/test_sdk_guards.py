@@ -116,7 +116,7 @@ def import_fixture(tmp_path, monkeypatch, mode='part'):
     owned.mkdir()
     extension = '.a3d' if mode == 'assembly' else '.m3d'
     target = owned / ('result' + extension)
-    prior = NS(Reference=1, PathName=str(tmp_path / 'user.m3d'), DocumentType=10)
+    prior = NS(Reference=1, PathName=str(tmp_path / 'user.m3d'), DocumentType=10, Changed=False, ReadOnly=True)
     doc = NS(Reference=2, PathName=str(source.with_suffix(extension)),
              DocumentType=20 if mode == 'assembly' else 10, ReadOnly=False, Changed=True)
     rows, saves = [prior], []
@@ -125,13 +125,23 @@ def import_fixture(tmp_path, monkeypatch, mode='part'):
             return prior
         rows.append(doc)
         if mode == 'extra':
-            rows.append(NS(Reference=3, PathName='', DocumentType=10))
+            rows.append(NS(Reference=3, PathName='', DocumentType=10, Changed=True, ReadOnly=False))
         if mode == 'changed_prior':
             prior.PathName = 'unexpected'
+        if mode == 'prior_changed_flag':
+            prior.Changed = True
+        if mode == 'prior_readonly_flag':
+            prior.ReadOnly = False
         if mode == 'wrong_path':
             doc.PathName = str(tmp_path / 'other.m3d')
         if mode == 'source_changed':
             source.write_text('changed')
+        if mode == 'wrong_kind':
+            doc.DocumentType = 99
+        if mode == 'converted_readonly':
+            doc.ReadOnly = True
+        if mode == 'invalid_reference':
+            doc.Reference = 0
         return doc
     def save(path):
         saves.append(path)
@@ -140,6 +150,10 @@ def import_fixture(tmp_path, monkeypatch, mode='part'):
             doc.PathName, doc.Changed = path, False
             if mode == 'save_changed_prior':
                 prior.PathName = 'changed during save'
+            if mode == 'save_kind_change':
+                doc.DocumentType = 20
+            if mode == 'save_readonly_change':
+                doc.ReadOnly = True
     doc.SaveAs = save
     collection = NS(Count=0, Item=lambda i: rows[i], Open=open_doc)
     class Collection:
@@ -162,16 +176,24 @@ def test_tracked_import_actual_native_extension_and_verified_save(tmp_path, monk
     assert k.owned_documents == {'2'}
     assert result['save_evidence']['write_evidence'] == 'created'
     assert not result['geometry_verified'] and not result['reopen_verified']
+    assert result['changed_after_import'] is True
+    assert result['created_reference'] == '2' and len(result['import_call_id']) == 32
+    assert result['converted_path'] == str(source.with_suffix(target.suffix))
+    assert result['inventory_after_open']['2'][2] is True
+    assert result['inventory_after_save']['2'][2] is False
 
 
 @pytest.mark.parametrize('mode', ['reuse', 'extra', 'changed_prior', 'wrong_path',
-                                 'source_changed', 'save_noop', 'save_changed_prior'])
+                                 'source_changed', 'save_noop', 'save_changed_prior',
+                                 'prior_changed_flag', 'prior_readonly_flag', 'wrong_kind',
+                                 'converted_readonly', 'save_kind_change', 'save_readonly_change',
+                                 'invalid_reference'])
 def test_uncertain_import_never_adopts_or_closes_unknown_documents(tmp_path, monkeypatch, mode):
     k, source, owned, target, saves = import_fixture(tmp_path, monkeypatch, mode)
     with pytest.raises(RuntimeError):
         tracked_import.import_step(k, str(source), str(owned), str(target))
     assert k.owned_documents == set()
-    assert saves == ([str(target)] if mode in {'save_noop', 'save_changed_prior'} else [])
+    assert saves == ([str(target)] if mode in {'save_noop', 'save_changed_prior', 'save_kind_change', 'save_readonly_change'} else [])
 
 
 def test_import_existing_target_and_outside_root_rejected_before_connection(tmp_path, monkeypatch):
@@ -193,3 +215,25 @@ def test_native_lookup_blocks_variable_omitted_by_enumeration(monkeypatch):
     monkeypatch.setattr(parameters, '_collection', lambda *args: collection)
     with pytest.raises(ValueError, match='refusing reuse'):
         variable_names.ensure_unused(None, 'doc', 'Hidden_D0')
+
+
+def test_ordinary_native_open_does_not_adopt_step_conversion(tmp_path):
+    source = tmp_path / 'fixture.step'
+    source.write_text('synthetic')
+    k = NS(connect=lambda: pytest.fail('Ordinary open must reject STEP before connect'))
+    with pytest.raises(ValueError, match='native KOMPAS'):
+        documents.open_document(k, str(source))
+
+
+def test_import_call_tokens_are_distinct_and_paths_remain_call_specific(tmp_path, monkeypatch):
+    receipts = []
+    for name in ['call-one', 'call-two']:
+        folder = tmp_path / name
+        folder.mkdir()
+        k, source, owned, target, _ = import_fixture(folder, monkeypatch)
+        receipt = tracked_import.import_step(k, str(source), str(owned), str(target))
+        assert receipt['import_source'] == str(source)
+        assert receipt['saved_path'] == str(target)
+        receipts.append(receipt)
+    assert receipts[0]['import_call_id'] != receipts[1]['import_call_id']
+    assert receipts[0]['import_source'] != receipts[1]['import_source']
