@@ -150,3 +150,9 @@ Base сравнивается с новым ref **этого** цикла. Ти�
 
 До этих испытаний динамика и native acceptance **не доказаны**. Offline-код не
 занимает общую CAD-сессию и не меняет рабочие/frozen инженерные рецепты.
+
+Поздний native pilot дал отрицательное динамическое наблюдение при действующем
+base/type12 после одного view.Rebuild. Это не успешное следование. Следующий
+отдельный gate — сравнение с документным RebuildDocument и GUI point attachment;
+подробности и исправление signed coordinate modes — в
+[исследовании динамики](leader-anchor-dynamics-research.md).

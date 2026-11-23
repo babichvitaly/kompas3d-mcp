@@ -247,3 +247,10 @@ complete bounded typed inventories, current source/root/view provenance and
 explicit material classification. It retains arc sweeps and makes no component
 membership or speed claim. No native fast path is installed or enabled; see
 [applicability and native comparison plan](whole-root-projection.md).
+
+Signed DrawingObjectParamType contracts now use the documented -1/-2/-7 enums.
+The pure `leader_motion` diagnostics reject valid-base/type12 counterexamples
+where real material motion is not followed, account for view recentering, and
+resolve a canonical typed position field through direct native lookup rather
+than first-field order. These are reported-evidence checks, not native following
+acceptance. See [dynamics research](leader-anchor-dynamics-research.md).

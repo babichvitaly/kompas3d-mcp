@@ -27,7 +27,7 @@ def fixture():
                  'views': {'view-1': pose}, 'layer_printability': {'layer-0': True},
                  'leader_invariants_sha256': 'f'*64, 'document_payload_sha256': '1'*64,
                  'immutable_files': {'/baseline/product.a3d': 'a'*64}}
-    plan = {'scope': scope, 'view_key': 'view-1', 'coordinate_mode': 1, 'protected': protected}
+    plan = {'scope': scope, 'view_key': 'view-1', 'coordinate_mode': -1, 'protected': protected}
     state = {'owner': {'scope': scope, 'canonical_reference': 'canonical-2',
                        'row_geometry_references': ['canonical-2'], 'target_reference': 'root-1',
                        'target_is_special_root': True},
@@ -42,7 +42,7 @@ def fixture():
                   'arc': [0., 0., 2., 2., 0., 0., 2., 0., 90.]}
     candidates = [{'reference': f'{kind}-1', 'kind': kind, 'geometry': values,
                    'direction': True if kind == 'arc' else None,
-                   'view_reference': 'view-ref-1', 'coordinate_mode': 1, 'valid': True,
+                   'view_reference': 'view-ref-1', 'coordinate_mode': -1, 'valid': True,
                    'temporary': False, 'visible': True, 'in_association_view': True,
                    'is_curve': True, 'is_geometry': True, 'material_class': 'source_projection',
                    'classification_sha256': '2'*64} for kind, values in geometries.items()]
@@ -149,7 +149,7 @@ def test_empty_or_unknown_exclusion_is_not_a_current_whitelist():
 
 def test_mode_mismatch_is_counted_and_does_not_change_coordinate_system():
     evidence = fixture()
-    evidence['candidates'][0]['coordinate_mode'] = 0
+    evidence['candidates'][0]['coordinate_mode'] = -2
     result = assess_whole_root_projection(evidence)
     assert result['whole_root_evidence_consistent']
     assert result['rejected_counts'] == {'coordinate_mode_mismatch': 1}

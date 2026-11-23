@@ -9,7 +9,13 @@ from typing import Annotated, Literal
 
 from pydantic import Field, StrictBool, model_validator
 
-from .leader_anchors import OwnerObservation, ProtectedState, SemanticScope, check_owner
+from .leader_anchors import (
+    CoordinateMode,
+    OwnerObservation,
+    ProtectedState,
+    SemanticScope,
+    check_owner,
+)
 from .reference_closure import path_key
 from .state_oracles import Evidence, Key, NonnegativeInt, PositiveInt, _result
 from .view_state import Finite, Sha256
@@ -21,7 +27,7 @@ Classification = Literal['source_projection', 'crop', 'construction', 'unknown']
 class RootProjectionPlan(Evidence):
     scope: SemanticScope
     view_key: Key
-    coordinate_mode: NonnegativeInt
+    coordinate_mode: CoordinateMode
     protected: ProtectedState
     max_curves: Annotated[PositiveInt, Field(le=20000)] = 20000
     excluded: dict[Key, Literal['crop', 'construction']] = Field(default_factory=dict)
@@ -81,7 +87,7 @@ class RootCurve(Evidence):
     # arc: xc,yc,r,x1,y1,x2,y2,Angle1,Angle2 (native units retained)
     direction: StrictBool | None = None
     view_reference: Key
-    coordinate_mode: NonnegativeInt
+    coordinate_mode: CoordinateMode
     valid: StrictBool
     temporary: StrictBool
     visible: StrictBool

@@ -26,7 +26,7 @@ def plan_fixture():
                  'layer_printability': {'view-a/layer-0': True, 'view-b/layer-0': False},
                  'leader_invariants_sha256': 'e'*64, 'document_payload_sha256': 'f'*64,
                  'immutable_files': {'/baseline/model.a3d': 'a'*64}}
-    return deepcopy({'kompas_major': 25, 'coordinate_mode': 1,
+    return deepcopy({'kompas_major': 25, 'coordinate_mode': -1,
                      'scope': {'mode': 'canonical', 'row_uuid': 'synthetic-row-uuid',
                               'canonical': occurrence, 'target': occurrence,
                               'mapping_sha256': '1'*64},
@@ -37,7 +37,7 @@ def plan_fixture():
 
 
 def curve(reference='curve-1', *, kind='line'):
-    return {'reference': reference, 'view_key': 'view-a', 'coordinate_mode': 1, 'kind': kind,
+    return {'reference': reference, 'view_key': 'view-a', 'coordinate_mode': -1, 'kind': kind,
             'geometry': [0., 0., 8., 0.] if kind == 'line' else [0., 0., 2.],
             'valid': True, 'temporary': False, 'visible': True, 'in_association_view': True,
             'is_curve': True, 'is_geometry': True}
@@ -240,7 +240,7 @@ def test_conflicting_path_reference_or_root_descendant_is_rejected():
 
 
 @pytest.mark.parametrize('key,value', [
-    ('view_key', 'other-view'), ('coordinate_mode', 0), ('valid', False),
+    ('view_key', 'other-view'), ('coordinate_mode', -2), ('valid', False),
     ('temporary', True), ('visible', False),
     ('in_association_view', False), ('is_curve', False), ('is_geometry', False),
 ])
@@ -535,5 +535,22 @@ def test_side_effect_during_typed_resolution_stops_before_setter():
 def test_other_native_version_requires_its_own_recipe_acceptance():
     plan = plan_fixture()
     plan['kompas_major'] = 24
+    adapter = FakeAdapter(plan)
+    assert not bind_existing_leader_owned(plan, adapter)['mutation_possible']
+
+
+@pytest.mark.parametrize('mode', [-1, -2, -7])
+def test_documented_signed_coordinate_modes_require_exact_matching_curve_mode(mode):
+    plan = plan_fixture()
+    plan['coordinate_mode'] = mode
+    adapter = FakeAdapter(plan)
+    adapter.curves['curve-1']['coordinate_mode'] = mode
+    assert bind_existing_leader_owned(plan, adapter)['status'] == 'structural_binding_verified_in_adapter'
+
+
+@pytest.mark.parametrize('mode', [0, 1, -3, -1.0, True])
+def test_coordinate_mode_is_a_strict_documented_sdk_enum(mode):
+    plan = plan_fixture()
+    plan['coordinate_mode'] = mode
     adapter = FakeAdapter(plan)
     assert not bind_existing_leader_owned(plan, adapter)['mutation_possible']

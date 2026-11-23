@@ -8,7 +8,7 @@ import json
 import math
 from typing import Annotated, Literal, Protocol
 
-from pydantic import Field, StrictBool, model_validator
+from pydantic import AfterValidator, Field, StrictBool, model_validator
 
 from .native_returns import AutomationMethod, normalize_automation_return
 from .reference_closure import path_key
@@ -17,6 +17,15 @@ from .view_state import Finite, Sha256, rotation_matrix
 
 Matrix = Annotated[list[Finite], Field(min_length=16, max_length=16)]
 Point = Annotated[list[Finite], Field(min_length=2, max_length=2)]
+
+
+def _coordinate_mode(value):
+    if value not in {-1, -2, -7}:
+        raise ValueError('Expected SDK ksAllParam=-1, ksSheetAllParam=-2 or ksViewAllParam=-7')
+    return value
+
+
+CoordinateMode = Annotated[int, Field(strict=True), AfterValidator(_coordinate_mode)]
 
 
 class OccurrenceIdentity(Evidence):
@@ -147,9 +156,9 @@ class Node(Evidence):
 class Curve(Evidence):
     reference: Key
     view_key: Key
-    coordinate_mode: NonnegativeInt  # native DrawingObjectParamType, same as leader
+    coordinate_mode: CoordinateMode  # native DrawingObjectParamType, same as leader
     kind: Literal['line', 'circle']
-    geometry: list[Finite]  # line x1,y1,x2,y2; circle xc,yc,r in explicit view coords
+    geometry: list[Finite]  # line x1,y1,x2,y2; circle xc,yc,r in matching parameter coords
     valid: StrictBool
     temporary: StrictBool
     visible: StrictBool
@@ -179,7 +188,7 @@ class AnchorPlan(Evidence):
     leader_key: Key  # full stable drawing/view/leader identity, never basename
     leader_reference: Key  # only this live call; never used as a saved identity
     view_key: Key
-    coordinate_mode: NonnegativeInt
+    coordinate_mode: CoordinateMode
     branch_index: NonnegativeInt
     segment_index: Annotated[int, Field(strict=True, ge=-1, le=-1)] = -1
     near_point: Point
