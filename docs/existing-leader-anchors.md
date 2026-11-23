@@ -151,8 +151,10 @@ Base сравнивается с новым ref **этого** цикла. Ти�
 До этих испытаний динамика и native acceptance **не доказаны**. Offline-код не
 занимает общую CAD-сессию и не меняет рабочие/frozen инженерные рецепты.
 
-Поздний native pilot дал отрицательное динамическое наблюдение при действующем
-base/type12 после одного view.Rebuild. Это не успешное следование. Следующий
-отдельный gate — сравнение с документным RebuildDocument и GUI point attachment;
-подробности и исправление signed coordinate modes — в
+Поздние native pilots дали отрицательное следование при действующем base/type12:
+view.Rebuild, CompleteRebuildDocument и RebuildDocument с ожиданием не помогли.
+Дополнительный PointOnCurve не создался до source displacement; оборванный
+receipt не подтверждает cleanup/restore. Unique-source-revision остаётся только
+непроверенным будущим кандидатом, новый native job сейчас не требуется.
+Подробности и исправление signed coordinate modes — в
 [исследовании динамики](leader-anchor-dynamics-research.md).

@@ -254,3 +254,10 @@ where real material motion is not followed, account for view recentering, and
 resolve a canonical typed position field through direct native lookup rather
 than first-field order. These are reported-evidence checks, not native following
 acceptance. See [dynamics research](leader-anchor-dynamics-research.md).
+
+Subsequent external native receipts are negative for view Rebuild, complete
+document rebuild and ordinary 2D document rebuild with polling. A separate
+PointOnCurve attempt failed at Create before displacement; its unfinished
+receipt does not establish cleanup or restoration. This records a scoped native
+limitation, not passing SDK integration or a universal diagnosis. A unique-source
+revision remains an untested future candidate; no new native job is requested.

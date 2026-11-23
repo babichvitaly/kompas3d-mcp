@@ -3,38 +3,58 @@
 23.11.2026. Только чтение квитанций/исходников и официальной справки АСКОН.
 CAD/COM/VM не использовались, installed SDK и production recipes не менялись.
 
-## Вывод и следующий native эксперимент
+## Текущий отрицательный результат: R3–R7
 
 Наличие exact+Valid base и действующего type12 **не гарантирует** следование
-наконечника. В новом внешнем native receipt оба конца материального отрезка
+наконечника. В исходном внешнем R3 receipt оба конца материального отрезка
 сместились одинаково, а tip в исходной параметрической системе не изменился.
 В использованном paper-преобразовании tip delta не совпала с material delta.
 Проверка остановилась до исправления текста: исправление поля не является
 причиной этого наблюдения. Это отрицательное свидетельство для выполненного
 порядка вызовов, не доказательство невозможности всех native механизмов.
 
-**Первый кандидат для сравнения — IKompasDocument2D1.RebuildDocument() после
-перестроения видов.** В исследованном пилоте выполнялся av.Rebuild(), этого
-документного шага до измерения не было. Он уже присутствует в прежнем
-синтетическом SDK-сценарии для ассоциативного размера:
-`scripts/validate_associative_drawing.py`, функции `_rebind_views` и `main`.
-`skills/kompas-api/references/parametrics-documents.md` описывает ту же
-последовательность. Успех размерного сценария не подтверждает позиционную выноску.
+**Кандидат с дополнительным документным пересчётом теперь испытан и не
+обеспечил следование.** Прежняя рекомендация считать его первым следующим
+экспериментом заменена результатами R4/R5. Перечитаны внешний итоговый отчёт
+`DYNAMIC_CHECK_LIMITATION_R7.md`, raw R4–R7 и тексты R4/R5/R6; они не исполнялись.
+В публичный SDK реальные UUID, файлы изделия и его геометрия не перенесены.
 
-Следующий experiment-first порядок на независимых disposable baselines:
-
-| Вариант | Порядок | Что разделяет |
+| Внешний опыт | Сохранённое наблюдение | Граница вывода |
 |---|---|---|
-| A | source placement/save -> av.Rebuild -> немедленное чтение | Контроль исходного отрицательного наблюдения |
-| B | тот же source stimulus -> av.Rebuild -> cast drawing в IKompasDocument2D1 -> RebuildDocument -> чтение | Нужен ли дополнительный документный пересчёт |
-| C | тот же stimulus -> IDrawingDocument.RebuildViews(explicit affected views) -> RebuildDocument -> чтение | Влияет ли перестроение группы зависимых видов |
-| D | тот же минимальный документ с привязкой, созданной штатной GUI-командой | Какая native point/segment связь реально обеспечивает tip following |
+| R3: av.Rebuild | True; rigid material displacement, но другая tip delta; base/type12 Valid | FAIL следования до text repair |
+| R4: IKompasDocument2D1.CompleteRebuildDocument | True на M0/M1/обратной M0; follows=False, returned=True | FAIL следования; recorded return не является успешным циклом движения/Save/RO |
+| R5: IKompasDocument2D1.RebuildDocument и PumpWaitingMessages | True; все 16 отсчётов follows=False | FAIL следования; дополнительное ожидание в этом опыте не помогло |
+| R6: дополнительный type2 PointOnCurve | Единственная branch point совпала с tip; Create=False, Valid=False; raw phase=starting, Save_invocations=0 | Неудача создания **до** M1, не четвёртый опыт движения; финальный restored PASS отсутствует |
+| R7: getter-only inventory | В том же процессе коллекция стала пустой вместо прежних девяти документов | Причина не установлена; не объявлять crash/restart/штатное закрытие/сохранение |
 
-Каждый вариант — новая копия; не продолжать B/C поверх изменённого результата A
-и не добавлять retry. Иначе причинность теряется. RebuildDocument/RebuildViews
-тоже могут менять текст/геометрию: до любого text repair снять полную геометрию,
-typed fields, native row lookup и poses/printability. BOOL True не заменяет
-геометрическую проверку. Нативный ресурс этим исследованием не запрашивался.
+Прежний размерный сценарий `scripts/validate_associative_drawing.py` действительно
+вызывает RebuildDocument после перестроения видов. Его успех не переносится
+на positional leader, для которого дополнительные варианты теперь отрицательны.
+Нельзя рекомендовать повторить тот же документный rebuild только потому, что
+его BOOL True. Результаты относятся к проверенной выноске и recipes; ни причина,
+ни универсальная невозможность native association этим не доказаны.
+
+Raw R6 оборвался на терминальном guard и не содержит итоговой проверки cleanup/
+сохранности. Восстановление из R4/R5 не переносится на состояние после R6.
+Позже владелец CAD отдельно сообщил о проверке полных файловых SHA и восстановлении
+приложения после snapshot. Это отдельное owner-reported восстановление, не
+ретроактивный R6 restored PASS и не независимая проверка файлов этим SDK-проходом.
+
+## Только один возможный будущий кандидат; сейчас не запускать
+
+Unique-source-revision workaround из `parametrics-documents.md` остаётся
+**непроверенной гипотезой** для этой выноски. После отдельного разрешения ресурса
+возможен один ограниченный опыт на новой полной копии: свежий уникальный source
+revision path, один выбранный порядок обновления, один source displacement,
+немедленное измерение actual material/tip и canonical native UUID без ручного
+перемещения/перепривязки tip. При успехе отдельно Save/RO, restore и повторный RO;
+при отрицательном результате записать ограничение и закончить именно этот опыт.
+Нет основания сейчас запускать новый job, перебирать rebuild-комбинации или
+возобновлять прежний оборванный R6. Владелец заканчивает отдельную рабочую выдачу.
+
+Структурная связь, финальный текст/геометрия текущей выдачи и динамика будущих
+изменений оцениваются отдельно. Этот SDK-контекст не принимает решения о выпуске
+инженерного комплекта. Полноценное автоматическое следование остаётся непринятым.
 
 ## Что документирует SDK
 
@@ -45,13 +65,14 @@ typed fields, native row lookup и poses/printability. BOOL True не замен
 | [Constraint.Index](https://help.ascon.ru/KOMPAS_SDK/25/ru-RU/iparametriticconstraint_index.html) | Индекс точки на текущем объекте, обычно с 0 | Не определяет соответствие точек IPositionLeader; -1 не расшифрован |
 | [Constraint.SegmentIndex](https://help.ascon.ru/KOMPAS_SDK/25/ru-RU/iparametriticconstraint_segmentindex.html) и [PartnerSegmentIndex](https://help.ascon.ru/KOMPAS_SDK/25/ru-RU/iparametriticconstraint_partnersegmentindex.html) | Сегмент текущего объекта и партнёра — разные свойства | Setter SegmentIndex=-1 нельзя приравнивать к getter constraint.SegmentIndex=0: разные контексты |
 | [IAssociationView.Rebuild](https://help.ascon.ru/KOMPAS_SDK/24/ru-RU/iassociationview_rebuild.html) | BOOL Rebuild(), перестроение вида | Нет обещания полного пересчёта всех 2D-ограничений/аннотаций документа |
-| [IKompasDocument2D1.RebuildDocument](https://help.ascon.ru/KOMPAS_SDK/25/ru-RU/ikompasdocument2d1_rebuilddocument.html) | BOOL RebuildDocument(), перестроение 2D-документа | Не гарантирует исправление данного positional leader; требует испытания |
+| [IKompasDocument2D1.RebuildDocument](https://help.ascon.ru/KOMPAS_SDK/25/ru-RU/ikompasdocument2d1_rebuilddocument.html) | BOOL RebuildDocument(), перестроение 2D-документа | В R5 проверен: не обеспечил следование данной выноски |
 | [IDrawingDocument.RebuildViews](https://help.ascon.ru/KOMPAS_SDK/25/ru-RU/idrawingdocument_rebuildviews.html) | BOOL RebuildViews(VARIANT Views), список видов, с v24 | Не указаны формат SAFEARRAY и значение empty для «всех»; wrapper сверить по installed v25 вне этой offline-задачи |
 | [CheckAssociation](https://help.ascon.ru/KOMPAS_SDK/25/ru-RU/ikompasdocument2d1_checkassociation.html) | Проверка/восстановление, аргумент DimensionTypes — типы размеров, результат enum плюс counts | Это не подтверждённый универсальный Solve для positional leaders; возможна модификация связей |
 
 Гипотеза «-1 связывает объект, но не material point» согласуется с наблюдением,
-но официальным описанием не подтверждена. Также не исключён неполный цикл
-пересчёта. Разделить их позволяют B и D, а не изменение raw enum наугад.
+но официальным описанием не подтверждена. Документный rebuild и ожидание уже
+не дали результата в R4/R5; это не устанавливает точную причину. Угадывание raw
+enum/indices не заменяет независимого доказательства point attachment.
 
 Руководство v25 прямо относит позиционные обозначения/линии-выноски к
 [ассоциативным объектам](https://help.ascon.ru/KOMPAS/25/ru-RU/2015_210_3_2_assoc_ob.html).
@@ -61,7 +82,8 @@ typed fields, native row lookup и poses/printability. BOOL True не замен
 режим выбирается до их создания. Линейный размер там выделен как особый случай
 со связями точек вместо ограничения «Ассоциативность». Следовательно, прежний
 успех размерного примера с type11 нельзя механически переносить на leader.
-GUI-контроль D должен включать существующую выноску на проекции с повторным
+Если когда-либо отдельно согласуется GUI-контроль, он должен включать выноску
+на проекции с повторным
 выбором base в режиме редактирования. Дополнительный простой 2D line/leader
 контроль поможет отделить обычную 2D association от обновления 3D-проекции.
 
@@ -72,7 +94,8 @@ GUI-контроль D должен включать существующую в
 чтение типа «Ассоциативная связь», поэтому обход через API5 не заменяет этот gate.
 Автоматический Associate тоже не даёт доказанной точной точки нужного owner.
 
-Для D вручную создать именно endpoint/material-point attachment минимальной
+Для такого будущего GUI-контроля создать именно endpoint/material-point attachment
+минимальной
 выноски и прочитать branch base, все native constraint indices/segments/partners.
 Потом проверить source displacement. Только после этого задавать Index и
 PartnerIndex через NewConstraint/Create на другой копии. Угадывать, что 0 — tip,
