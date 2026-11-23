@@ -241,3 +241,9 @@ state. Saved evidence requires two fresh RO cycles with exact current owner and
 base, allowing regenerated projection references and an empty constraint Partner.
 No installed adapter, native dynamics, PDF, performance or additional live CAD
 coverage is claimed. See [contract and native acceptance plan](existing-leader-anchors.md).
+
+The separate `root_projection` offline evaluator checks whole-product view scope,
+complete bounded typed inventories, current source/root/view provenance and
+explicit material classification. It retains arc sweeps and makes no component
+membership or speed claim. No native fast path is installed or enabled; see
+[applicability and native comparison plan](whole-root-projection.md).
