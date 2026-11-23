@@ -230,3 +230,14 @@ are covered by unit/filesystem tests. Windows metadata regression compares
 `stat` and `fstat` within separate channels, retaining device/inode binding and
 SHA verification. `files_staged_not_rebound` is not native-link isolation.
 Package installation/schema smoke does not certify portable project relocation.
+
+## Offline existing-leader anchor contract (2026-11-23)
+
+`leader_anchors` and `native_returns` add synthetic/stateful regression coverage
+for exact semantic ownership before nearest-curve selection, special-root query
+exclusion, bounded/deduplicated inserted-occurrence traversal, typed existing
+leader mutation, method-specific Automation returns and protected view/print
+state. Saved evidence requires two fresh RO cycles with exact current owner and
+base, allowing regenerated projection references and an empty constraint Partner.
+No installed adapter, native dynamics, PDF, performance or additional live CAD
+coverage is claimed. See [contract and native acceptance plan](existing-leader-anchors.md).
