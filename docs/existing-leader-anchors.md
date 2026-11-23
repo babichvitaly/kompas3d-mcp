@@ -154,7 +154,9 @@ Base сравнивается с новым ref **этого** цикла. Ти�
 Поздние native pilots дали отрицательное следование при действующем base/type12:
 view.Rebuild, CompleteRebuildDocument и RebuildDocument с ожиданием не помогли.
 Дополнительный PointOnCurve не создался до source displacement; оборванный
-receipt не подтверждает cleanup/restore. Unique-source-revision остаётся только
-непроверенным будущим кандидатом, новый native job сейчас не требуется.
+receipt не подтверждает cleanup/restore. Последующий отдельный synthetic native
+опыт после handover также дал отрицательный unique-source-revision результат;
+см. [native сравнение](native-leader-source-revisions.md). Новый native job сейчас
+не требуется, автоматическое следование не принято.
 Подробности и исправление signed coordinate modes — в
 [исследовании динамики](leader-anchor-dynamics-research.md).

@@ -259,5 +259,15 @@ Subsequent external native receipts are negative for view Rebuild, complete
 document rebuild and ordinary 2D document rebuild with polling. A separate
 PointOnCurve attempt failed at Create before displacement; its unfinished
 receipt does not establish cleanup or restoration. This records a scoped native
-limitation, not passing SDK integration or a universal diagnosis. A unique-source
-revision remains an untested future candidate; no new native job is requested.
+limitation, not passing SDK integration or a universal diagnosis.
+
+After explicit CAD handover, a separate native v25 synthetic plate/assembly/one
+PositionLeader experiment compared same-filename updates against source bytecopy
+to a unique revision before editing. Both produced real projected-material motion
+without tip following, immediately and through two saved RO cycles. Exact valid
+base/type12 persisted. Sheet/view coordinate witnesses agreed; untouched part and
+prior unique source revisions were hash-checked. Independent final discovery
+confirmed the five protected RO documents unchanged and no synthetic documents
+left open. This closes the unique-revision candidate negatively for this fixture;
+it does not establish a general cause, SP-field integration or passing dynamics.
+See [native evidence and restoration limits](native-leader-source-revisions.md).
