@@ -171,3 +171,23 @@ def test_new_output_tree_cannot_overlap_protected_or_installed_trees(tmp_path, r
     with pytest.raises(RuntimeError, match='must be disjoint'):
         native.require_disjoint_root(root, [protected])
     native.require_disjoint_root(tmp_path/'separate-new-run', [protected])
+
+
+def test_dirty_foreign_document_can_only_be_pinned_with_exact_fresh_identity(tmp_path, monkeypatch):
+    session, _, protected, _, _, identity, _ = fixture(tmp_path, monkeypatch)
+    protected.ReadOnly, protected.Changed = False, True
+    rows = native.inventory(None)[1][:1]
+    with pytest.raises(RuntimeError, match='clean saved RO'):
+        native.validate_protected_handover({}, identity, rows, rows)
+    config = {'protected_document_policy': 'preserve_exact_state',
+              'expected_application': dict(identity)}
+    native.validate_protected_handover(config, identity, rows, rows)
+    with pytest.raises(RuntimeError, match='fresh process identity'):
+        native.validate_protected_handover({**config, 'expected_application': {}}, identity, rows, rows)
+    with pytest.raises(RuntimeError, match='differ from fresh handover'):
+        native.validate_protected_handover(config, identity, rows, [{**rows[0], 'reference': 'stale'}])
+    session.baseline = {rows[0]['reference']: dict(rows[0])}
+    session.guard()
+    protected.Changed = False  # even saving the foreign dirty document violates protection
+    with pytest.raises(RuntimeError, match='protected document changed'):
+        session.guard()

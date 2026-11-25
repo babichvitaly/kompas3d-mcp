@@ -85,7 +85,22 @@ def bind_row_geometry_owned(expected, boundary_kind, adapter: RowBindingAdapter)
         if call('row_uuid', row) != uuid:
             raise ValueError('Row UUID changed across Update')
         refs = call('geometry_references', row)
+        result.update(reference_after_boundary=first_ref, reference_after_update=second_ref)
+        if not isinstance(refs, list) or any(not isinstance(ref, str) or not ref for ref in refs):
+            raise ValueError('Expected a detached list of native geometry references')
+        result['geometry_references'] = list(refs)
         if refs != [second_ref]:
+            count = refs.count(second_ref)
+            result['geometry_mismatch'] = {
+                'expected_reference_present': count > 0,
+                'expected_reference_count': count,
+                'actual_member_count': len(refs),
+                'additional_references': [ref for ref in refs if ref != second_ref],
+                'classification': ('extra_membership' if count == 1 else
+                                   'duplicate_target_reference' if count > 1 else
+                                   'expected_reference_not_observed'),
+                'semantic_link_loss_established': False,
+            }
             raise ValueError('Geometry differs from exact fresh post-Update occurrence')
         phase = 'final_ownership_guard'
         adapter.guard_owned_document()

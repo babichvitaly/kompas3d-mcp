@@ -55,6 +55,11 @@ specification-row UUIDs are not checked, and the current helper ignores the
 component Update return value. Mates and mechanism edits remain unverified.
 See [assembly-component-replacement.md](assembly-component-replacement.md) for
 the documented setter/update candidate and the separate native acceptance gate.
+The later [synthetic model-SP investigation](native-specification-reference.md)
+verified persisted UUID/singleton membership and actual properties after direct
+replacement, with explicit subassembly writeback and a hidden-position change.
+Same-singleton Geometry reassignment added parent membership and was rejected.
+This does not establish general production stale-text refresh or full payload preservation.
 There is no defensible percentage for "almost all KOMPAS" without a defined
 workflow set and edition-specific acceptance tests. Tool count is not coverage:
 a general SDK tool can reach many operations, but reach alone does not validate

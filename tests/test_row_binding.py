@@ -107,3 +107,23 @@ def test_incomplete_adapter_rejected_before_mutation():
     result = bind_row_geometry_owned(KEY, 'row_add', NS())
     assert result['status'] == 'failed' and result['failed_phase'] == 'preflight'
     assert not result['mutation_possible']
+
+
+def test_extra_parent_membership_does_not_report_loss_of_the_target_reference():
+    result = bind_row_geometry_owned(KEY, 'row_add', SyntheticAdapter('extra_binding'))
+    assert result['status'] == 'failed'
+    assert result['geometry_references'] == ['fresh-2', 'extra']
+    diagnostic = result['geometry_mismatch']
+    assert diagnostic['classification'] == 'extra_membership'
+    assert diagnostic['expected_reference_present'] and diagnostic['actual_member_count'] == 2
+    assert diagnostic['additional_references'] == ['extra']
+    assert not diagnostic['semantic_link_loss_established']
+
+
+def test_unobserved_runtime_reference_does_not_establish_semantic_link_loss():
+    result = bind_row_geometry_owned(KEY, 'row_add', SyntheticAdapter('wrong_binding'))
+    assert result['status'] == 'failed'
+    diagnostic = result['geometry_mismatch']
+    assert diagnostic['classification'] == 'expected_reference_not_observed'
+    assert not diagnostic['expected_reference_present']
+    assert not diagnostic['semantic_link_loss_established']

@@ -84,6 +84,22 @@ def inventory(app):
     return docs, rows
 
 
+def validate_protected_handover(config, identity, protected, expected):
+    """Keep legacy clean-RO default; explicitly pin dirty user documents if requested."""
+    policy = config.get('protected_document_policy', 'clean_saved_ro')
+    need(policy in {'clean_saved_ro', 'preserve_exact_state'}, 'Unknown protected document policy')
+    if policy == 'preserve_exact_state':
+        need(config.get('expected_application') == identity,
+             'Exact-state protection requires fresh process identity')
+        by_reference = lambda rows: sorted(rows, key=lambda row: row['reference'])
+        need(by_reference(protected) == by_reference(expected),
+             'Exact-state documents differ from fresh handover')
+        need(all(r['path'] for r in protected), 'Exact-state protection requires saved file paths')
+    else:
+        need(all(r['read_only'] and not r['changed'] and r['path'] for r in protected),
+             'Protected handover must contain only clean saved RO documents')
+
+
 class NativeOwnedSession:
     def __init__(self, config, cleanup_ledger=None):
         import pythoncom
@@ -144,11 +160,11 @@ class NativeOwnedSession:
         need(normalize(rows) == normalize(expected+adopted),
              'Fresh inventory differs from explicit handover and scoped cleanup ledger')
         protected = [r for r in rows if key(r['path']) in {key(e['path']) for e in expected}]
-        need(all(r['read_only'] and not r['changed'] and r['path'] for r in protected),
-             'Protected handover must contain only clean saved RO documents')
+        validate_protected_handover(config, self.identity, protected, expected)
         self.baseline = {r['reference']: r for r in protected}
         for row in adopted:
-            need(row['read_only'], 'This reconciliation permits closing only own RO remnants')
+            need(row['read_only'] or config.get('cleanup_allow_dirty_owned') is True,
+                 'This reconciliation permits closing only own RO remnants by default')
             actual = next((r for r in rows if r['reference'] == row['reference']), None)
             need(actual == row, 'Fresh cleanup candidate differs')
             doc = next(d for d in live_docs if str(d.Reference) == row['reference'])
@@ -156,6 +172,9 @@ class NativeOwnedSession:
             self.k.owned_documents.add(row['reference'])
             self.owned[row['reference']] = {**row, 'result': result}
         self.protected_files = file_tree(config['protected_roots'])
+        for path, expected_sha in handover.get('open_file_sha256', {}).items():
+            need(self.protected_files.get(key(path)) == expected_sha,
+                 'Protected disk file differs from fresh discovery')
         import kompas_mcp
 
         self.install_roots = [str(Path(kompas_mcp.__file__).parent), str(sdk/'lib')]
