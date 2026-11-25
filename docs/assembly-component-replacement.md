@@ -89,6 +89,10 @@ Bounds/volume и собственные UUID СП на момент сообще
 сохранились, Name/Marking occurrences новые; текст собственной СП остался старым.
 Это не завершённая приёмка синхронизации СП. Отдельный offline-разбор механизмов
 и отказа row.Update — [specification-property-sync.md](specification-property-sync.md).
+Последующая отдельная попытка синхронизации переназначением прежнего Geometry
+singleton обновила текст, но не прошла точную проверку Geometry.Reference после
+setter; Save не выполнялся. Её отрицательный результат не отменяет ранее принятую
+смену источников и не доказывает причину расхождения runtime references.
 
 Текущий [assemblies.rebind_sources](../src/kompas_mcp/assemblies.py) меняет FileName,
 игнорирует результат part.Update и проверяет непосредственные пути, матрицы,
