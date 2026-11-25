@@ -83,6 +83,13 @@ Bounds/volume и собственные UUID СП на момент сообще
 общая geometry/SP identity acceptance не установлена. Предыдущий отрицательный
 опыт сохраняет свою отдельную область; причину прежнего False не выводим.
 
+Следующее внешнее сообщение расширило узкую проверку: persisted API7 route принят
+для нескольких assembly owners, bounds целевых вставок совпали с донорами.
+В каноническом owner исходные UUID целевых строк и exact Geometry singleton
+сохранились, Name/Marking occurrences новые; текст собственной СП остался старым.
+Это не завершённая приёмка синхронизации СП. Отдельный offline-разбор механизмов
+и отказа row.Update — [specification-property-sync.md](specification-property-sync.md).
+
 Текущий [assemblies.rebind_sources](../src/kompas_mcp/assemblies.py) меняет FileName,
 игнорирует результат part.Update и проверяет непосредственные пути, матрицы,
 количество и изоляцию зависимостей. Старый subtree внутри copy_root способен
