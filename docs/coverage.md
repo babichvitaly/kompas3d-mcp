@@ -46,10 +46,15 @@ lines/circles/arcs. It does not infer tangency or manufacturing design intent.
 Non-orthogonal profiles can require an explicit alternative: an irrational
 hexagon offset drifted by about 0.000004 mm and was correctly rejected by the
 0.000001 mm primitive comparison. This is not full arbitrary-sketch solver coverage.
-`rebind_component_sources` additionally implements copy-scoped immediate source
-replacement, preserving all immediate matrices. A local multi-file assembly
-acceptance compared 329 occurrence matrices; source files and private geometry
-remain outside this public repository. Mates and mechanism edits remain unverified.
+`rebind_component_sources` implements copy-scoped immediate path rebinding and
+checks all immediate matrices. A local multi-file assembly acceptance compared
+329 occurrence matrices; source files and private geometry remain outside this
+public repository. This does not establish replacement by a geometrically different
+assembly: nested loaded geometry, persistent occurrence identity and own
+specification-row UUIDs are not checked, and the current helper ignores the
+component Update return value. Mates and mechanism edits remain unverified.
+See [assembly-component-replacement.md](assembly-component-replacement.md) for
+the documented setter/update candidate and the separate native acceptance gate.
 There is no defensible percentage for "almost all KOMPAS" without a defined
 workflow set and edition-specific acceptance tests. Tool count is not coverage:
 a general SDK tool can reach many operations, but reach alone does not validate
