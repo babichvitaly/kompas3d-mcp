@@ -29,6 +29,30 @@ Automation force-resync существующих строк после заме�
 [ISpecificationObject.Edit](https://help.ascon.ru/KOMPAS_SDK/25/ru-RU/ispecificationobject_edit.html)
 запускает визуальное редактирование; это не обязательный неинтерактивный BeginEdit.
 
+## Edit и повторяющиеся строки
+
+Документированное назначение `Edit():BOOL` — запуск визуального процесса для
+базового/вспомогательного объекта. Страница Update не требует Edit перед изменением
+параметров. Следовательно, гипотеза «в modeldesc обязательно сначала Edit» пока
+не подтверждена. Такой вызов может требовать участия пользователя; нельзя считать
+его бездиалоговым исправлением или держать native worker в ожидании неизвестного UI.
+
+[IsFirstObject](https://help.ascon.ru/KOMPAS_SDK/25/ru-RU/ispecificationbaseobject_isfirstobject.html)
+только для чтения: True отличает первый из одинаковых объектов, False — последующие.
+Ограничение Update для последующих объектов на странице не указано.
+[Draw](https://help.ascon.ru/KOMPAS_SDK/25/ru-RU/ispecificationbaseobject_draw.html)
+управляет показом; при False объект сохраняется и участвует в расчёте позиций.
+Скрытую строку нельзя исключать из проверки UUID/Geometry/payload или удалять как
+лишнюю. Видимость и признак первого одинакового объекта не доказывают редактируемость.
+
+[GroupObject](https://help.ascon.ru/KOMPAS_SDK/25/ru-RU/groupobject.html) — writable
+признак группировки, а [IsGroupObject](https://help.ascon.ru/KOMPAS_SDK/25/ru-RU/ispecificationbaseobject_isgroupobject.html)
+— readonly признак группового объекта. Это разные свойства, не синонимы
+IsFirstObject. Переключение GroupObject/Draw или выбор первой видимой строки
+не является установленным обходом Update=False; UUID и точная связь с occurrence
+остаются основой выбора. Совпадение False/False у повторяющихся строк совместимо
+с их скрытым показом, но не устанавливает причину отказа Update.
+
 ## SyncronizeWithProperties и заполнение
 
 [SyncronizeWithProperties](https://help.ascon.ru/KOMPAS_SDK/25/ru-RU/ispecificationbaseobject_syncronizewithproperties.html)
@@ -124,3 +148,6 @@ UUID целевых строк сохранились и Geometry singleton ук
 не устранила Update=False; текст виден только в RAM, сохранением отказ не обходился.
 Этот результат исключает успех именно проверенного кандидата активности,
 но не устанавливает общую причину False. Дополнительный SDK native worker не нужен.
+Последующее чтение показало Sync=True/EditSourceObject=False у целевых строк,
+DelegateMode=False/NeedRebuild=True у описания, а также первые видимые и последующие
+скрытые одинаковые объекты. Эти флаги не доказывают необходимость Edit.
