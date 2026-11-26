@@ -60,6 +60,11 @@ verified persisted UUID/singleton membership and actual properties after direct
 replacement, with explicit subassembly writeback and a hidden-position change.
 Same-singleton Geometry reassignment added parent membership and was rejected.
 This does not establish general production stale-text refresh or full payload preservation.
+A separate [API5 existing-row text-authoring milestone](api5-existing-specification-text.md)
+was executed by the CAD owner and its retained receipt reviewed offline: explicit
+GetSpecification/description context, numeric object mapping, Edit/Set/End, and two
+SavedRO checks preserved UUIDs, exact links, positions and non-target payload.
+This is a scoped native text-editing result, not a shipped adapter or general properties resync.
 There is no defensible percentage for "almost all KOMPAS" without a defined
 workflow set and edition-specific acceptance tests. Tool count is not coverage:
 a general SDK tool can reach many operations, but reach alone does not validate
