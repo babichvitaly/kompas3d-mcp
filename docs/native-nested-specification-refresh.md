@@ -128,7 +128,11 @@ An exact historical crosswalk was subsequently supplied and its candidate parent
 target archive hashes were checked offline, without basename selection. This
 identifies historical destinations; it still does not establish the required
 stored-to-live resolution, preserved Geometry or a passing bounded relocation.
-The engineering RW stage therefore remains unstarted.
+The engineering RW stage was unstarted at that checkpoint. The subsequent
+[exact-byte isolated-copy experiment](native-reference-copy-isolation.md)
+separately accepted an augmented reference layout and eight-cell model-SP text
+authoring through two result reopenings. It does not certify the original ZIP
+as portable or replace an accepted engineering package.
 
 Offline suite: **910 passed**, including 35 additional stateful source/text
 contracts; Ruff and sdist/wheel build passed. Five existing SWIG warnings remain.

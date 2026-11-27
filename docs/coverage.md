@@ -95,6 +95,16 @@ stale and remains a negative propagation result. Upper text is explicitly
 authored through API5 only after source values, owner properties and display
 caches are current; UUID/links/positions/grouping/FromSource remain exact.
 Real-project relocation/repair and automatic installed integration are pending.
+
+The separate [exact-byte reference-copy experiment](native-reference-copy-isolation.md)
+then proved a particular augmented private copy's reference closure through two
+read-only openings, followed by eight-cell model-SP authoring and two result
+reopenings with full observed 119-row/863-occurrence preservation. The source and
+printed SPW files were unchanged. This is copy-only acceptance, not portability
+of the original archive or an engineering release. The detached
+`reference_copy_plan` has synthetic planning/security contracts; native staging
+and complete collectors still belong to the explicit caller, not an automatic
+installed repair tool.
 There is no defensible percentage for "almost all KOMPAS" without a defined
 workflow set and edition-specific acceptance tests. Tool count is not coverage:
 a general SDK tool can reach many operations, but reach alone does not validate
