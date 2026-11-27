@@ -89,12 +89,15 @@ class TextAdapter:
     def capture_state(self):
         return semantic_capture(self.session, self.owner, self.targets)
 
-    def row_number(self, uuid):
+    def row_object(self, uuid):
         rows = description(self.session, self.owner).BaseObjects
         found = [row for i in range(rows.Count)
                  if str((row := rows.Item(i)).UniqueMetaObjectKey) == uuid]
         need(len(found) == 1, 'Existing exact UUID not unique')
-        return float(found[0].UniqueNumber)
+        return found[0]
+
+    def row_number(self, uuid):
+        return float(self.row_object(uuid).UniqueNumber)
 
     def pointer_for_number(self, number):
         return self.sp.ksGetSpcObject(number)
@@ -211,7 +214,7 @@ def run(session, config, report, event):
                   production_stale_text_reproduced=False, properties_resync_proven=False)
 
 
-def main():
+def main(run_case=run):
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', required=True)
     args = parser.parse_args()
@@ -240,7 +243,7 @@ def main():
         need(not session.root.exists(), 'New GUID/root required')
         session.root.mkdir()
         event('fresh_session_ready')
-        run(session, config, report, event)
+        run_case(session, config, report, event)
         report['phase'] = 'complete'
     except Exception:  # noqa: BLE001 - retain partial evidence, never replay mutation
         report.update(phase='failed', error=traceback.format_exc())

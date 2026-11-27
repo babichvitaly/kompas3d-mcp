@@ -6,6 +6,7 @@ Private configuration/receipts are never checked into the public repository.
 
 import argparse
 import html
+import inspect
 import json
 import re
 import traceback
@@ -24,6 +25,7 @@ TOPICS = [
     'ikompasdocument1_getobjectid.html', 'ikompasdocument1_findobjectbyid.html',
     'ipropertykeeper_getpropertyvalue.html', 'ipropertykeeper_setpropertyvalue.html',
     'ipropertymng_getproperty.html', 'ipart7_createspcobjects.html',
+    'ksspecification_ksgetspcpropertyfill.html', 'ksspecification_kssetspcpropertyfill.html',
 ]
 
 
@@ -76,6 +78,9 @@ def discover(config):
                 'version': list(app5.ksGetSystemVersion()), 'before': {'documents': before},
                 'after': {'documents': after}, 'active_observations': extras,
                 'open_file_sha256': disk, 'topics': topics, 'classes': classes,
+                'api5_specification_signatures': {name: str(inspect.signature(getattr(
+                    modules['kAPI5'].ksSpecification, name))) for name in [
+                        'ksGetSpcPropertyFill', 'ksSetSpcPropertyFill']},
                 'missing_topics': [n for n in TOPICS if n not in topics],
                 'native_mutations': 0}
     finally:

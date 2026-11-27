@@ -70,6 +70,13 @@ were rejected before Save: editing a hidden duplicate changed its print flags;
 editing a unique row changed occurrence properties and FromSource. An opt-in
 single-row helper and 23 offline guard tests preserve these failures; no native
 text-only acceptance or installed MCP integration is claimed for that helper.
+A later [saved stale-name fixture and property-source refresh](native-stale-specification-refresh.md)
+passed: source properties4/5 were independently current with FromSource=True,
+SP name remained old through two baseline reopenings, and a single property5
+VT_EMPTY reset refreshed it while preserving UUID/membership/positions/grouping/
+inheritance through two result reopenings. Native A/B summary quantities remained
+2 and 1. The display Name cache was explicitly corrected; sources stayed unchanged
+during refresh. This is one plain name cell/style1 case, not a general resync tool.
 There is no defensible percentage for "almost all KOMPAS" without a defined
 workflow set and edition-specific acceptance tests. Tool count is not coverage:
 a general SDK tool can reach many operations, but reach alone does not validate

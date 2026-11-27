@@ -132,3 +132,13 @@ def test_non_independent_row_and_duplicate_cell_rejected():
     plan = deepcopy(PLAN)
     plan['cells'][1] = plan['cells'][0]
     assert not author_existing_row_text_owned(plan, Adapter())['mutation_possible']
+
+
+def test_sync_false_requires_explicit_plan_and_is_preserved():
+    adapter = Adapter()
+    adapter.state['rows']['row-a']['sync'] = False
+    assert not author_existing_row_text_owned(PLAN, adapter)['mutation_possible']
+    plan = {**deepcopy(PLAN), 'expected_sync': False}
+    result = author_existing_row_text_owned(plan, adapter)
+    assert result['status'] == 'text_verified_in_adapter'
+    assert result['after']['rows']['row-a']['sync'] is False

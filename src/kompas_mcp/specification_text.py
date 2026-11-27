@@ -27,6 +27,7 @@ class ExistingRowTextPlan(BaseModel):
 
     row_uuid: str = Field(min_length=1)
     expected_context: dict
+    expected_sync: bool = True
     cells: list[TextCellChange] = Field(min_length=1, max_length=2)
 
 
@@ -38,6 +39,8 @@ def author_existing_row_text_owned(plan, adapter):
     column types to text for the explicitly verified execution/block. Do not use
     this adapter contract for multiple text blocks represented by the same key.
     Context must include exact owner path/reference/type and description identity.
+    Sync=True is the default; a different expected_sync must be explicit. The
+    helper never changes that flag or accepts any post-write flag drift.
     The adapter's guard must verify exclusive ownership and current context before
     EVERY native access, including reads. No Save is performed here.
 
@@ -91,8 +94,9 @@ def author_existing_row_text_owned(plan, adapter):
         if before['context'] != wanted.expected_context or wanted.row_uuid not in before['rows']:
             raise ValueError('Exact owner/description or existing UUID mismatch')
         previous = before['rows'][wanted.row_uuid]
-        if previous['state'] != 0 or previous['sync'] is not True or previous['edit_source'] is not False:
-            raise ValueError('Only own independent Sync=True/EditSourceObject=False rows are supported')
+        if (type(previous['state']) is not int or previous['state'] != 0
+                or previous['sync'] is not wanted.expected_sync or previous['edit_source'] is not False):
+            raise ValueError('Require own independent row, explicitly pinned Sync and EditSourceObject=False')
         expected = deepcopy(before)
         native_number = number(call('row_number', wanted.row_uuid))
         ptr = pointer(call('pointer_for_number', native_number))

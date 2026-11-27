@@ -1,5 +1,9 @@
 # Synthetic API5 text authoring: two rejected preservation gates
 
+Later work reproduced a source-change stale-name fixture and accepted a separate
+[property-source refresh](native-stale-specification-refresh.md). The literal-text
+failures below remain negative and are not relabeled by that different operation.
+
 2026-11-27, KOMPAS-3D v25. Two independent synthetic fixtures were built under
 new isolated roots after explicit exclusive handover and fresh discovery. No
 engineering inputs were used. Initial and independently discovered final open

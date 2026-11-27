@@ -25,6 +25,12 @@ helper с внедряемым adapter и строгими gates; его соб�
 regrouping/изменения свойств. Они не являются повтором принятого stale-text случая.
 Произвольные стили, исполнения и внешние inherited строки не приняты.
 
+Позднее [собственная synthetic stale-name проверка](native-stale-specification-refresh.md)
+подтвердила сохранённый старый текст при актуальных свойствах/FromSource=True.
+В ней whole-row API5 text editing нарушил FromSource и был отклонён; отдельный
+property-source reset прошёл два RO и независимую проверку группировки. Это
+отдельная узкая операция, не обобщение принятого здесь text-authoring маршрута.
+
 ## Exact owner и описание
 
 У exact API5 [ksDocument3D.GetSpecification()](https://help.ascon.ru/KOMPAS_SDK/25/ru-RU/ksdocument3d_getspecification.html)
