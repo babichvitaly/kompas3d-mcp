@@ -65,6 +65,11 @@ was executed by the CAD owner and its retained receipt reviewed offline: explici
 GetSpecification/description context, numeric object mapping, Edit/Set/End, and two
 SavedRO checks preserved UUIDs, exact links, positions and non-target payload.
 This is a scoped native text-editing result, not a shipped adapter or general properties resync.
+The subsequent [synthetic literal-text controls](native-specification-text.md)
+were rejected before Save: editing a hidden duplicate changed its print flags;
+editing a unique row changed occurrence properties and FromSource. An opt-in
+single-row helper and 23 offline guard tests preserve these failures; no native
+text-only acceptance or installed MCP integration is claimed for that helper.
 There is no defensible percentage for "almost all KOMPAS" without a defined
 workflow set and edition-specific acceptance tests. Tool count is not coverage:
 a general SDK tool can reach many operations, but reach alone does not validate
