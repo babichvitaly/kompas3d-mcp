@@ -6,6 +6,10 @@ property-source reset updated it without a whole-row text edit. Two independent
 result reopenings and a separate native grouping audit passed. No engineering
 inputs, installed package/config changes or production acceptance are implied.
 
+Subsequent [designation and grouped-row experiments](native-designation-group-refresh.md)
+extend the coverage with separate fixtures; the scope and negative controls of
+this original unique-name experiment remain unchanged.
+
 ## Reproduction without changing SP synchronization
 
 The owner contains three linked assembly occurrences: two identical occurrences

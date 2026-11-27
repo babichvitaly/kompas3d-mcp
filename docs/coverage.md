@@ -77,6 +77,15 @@ VT_EMPTY reset refreshed it while preserving UUID/membership/positions/grouping/
 inheritance through two result reopenings. Native A/B summary quantities remained
 2 and 1. The display Name cache was explicitly corrected; sources stayed unchanged
 during refresh. This is one plain name cell/style1 case, not a general resync tool.
+
+Separate [designation and grouped-row fixtures](native-designation-group-refresh.md)
+extend the synthetic v25 evidence: property4 refresh corrects a stale inherited
+value cache as well as its text; a direct identical property5 group reproduces
+current inherited properties with stale names. Numbered group fixtures for both
+properties preserve positions 10/10/20, UUID/singleton links, native grouping,
+poses and FromSource through two result reopenings. A nested-target name reset
+returned True without effect and was rejected before Save. No general nested
+refresh, installed integration or engineering acceptance is claimed.
 There is no defensible percentage for "almost all KOMPAS" without a defined
 workflow set and edition-specific acceptance tests. Tool count is not coverage:
 a general SDK tool can reach many operations, but reach alone does not validate
