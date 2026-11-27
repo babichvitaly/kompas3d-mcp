@@ -90,6 +90,11 @@ belongs to fixture preparation. The
 [summary-count method](https://help.ascon.ru/KOMPAS_SDK/25/ru-RU/ksspecification_ksgetspcobjectsummarycount.html)
 provides the independent native grouping observation.
 
+Subsequent [two-owner nested-row experiments](native-nested-specification-refresh.md)
+establish a separate source-owner refresh followed by explicit API5 text
+authoring at the upper owner. They do not turn the rejected nested property
+reset above into a successful operation or a general native resync command.
+
 The runner is opt-in `scripts/validate_specification_group_refresh.py`; it uses
 one exclusive STA worker, fresh session inventory, new synthetic GUID roots,
 strict owned-document guards and no mutation replay. All result Saves are

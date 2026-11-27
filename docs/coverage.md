@@ -86,6 +86,15 @@ properties preserve positions 10/10/20, UUID/singleton links, native grouping,
 poses and FromSource through two result reopenings. A nested-target name reset
 returned True without effect and was rejected before Save. No general nested
 refresh, installed integration or engineering acceptance is claimed.
+
+The later [two-owner synthetic route](native-nested-specification-refresh.md)
+separates immediate-owner direct source reset from upper-owner existing text
+authoring. Name and designation pass guarded helper diagnostics/execution and
+two result reopenings at both owners. Child Save alone leaves upper SP text
+stale and remains a negative propagation result. Upper text is explicitly
+authored through API5 only after source values, owner properties and display
+caches are current; UUID/links/positions/grouping/FromSource remain exact.
+Real-project relocation/repair and automatic installed integration are pending.
 There is no defensible percentage for "almost all KOMPAS" without a defined
 workflow set and edition-specific acceptance tests. Tool count is not coverage:
 a general SDK tool can reach many operations, but reach alone does not validate
